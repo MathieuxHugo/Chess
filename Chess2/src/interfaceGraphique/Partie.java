@@ -16,7 +16,6 @@ import java.util.LinkedList;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -24,14 +23,12 @@ import chess.Coordonnee;
 import chess.Coup;
 import chess.Echiquier;
 import chess.Piece;
-import chess.PriseEnPassant;
 import chess.Promotion;
-import chess.Roque;
 import chess.Promotion.Choix;
 import ia.Ordinateur;
 
 
-public class Partie extends JPanel implements MouseMotionListener,MouseListener{
+public final class Partie extends JPanel implements MouseMotionListener,MouseListener,Runnable{
 	private JPanel plateau;
 	private MouseEvent firstMouseEvent;
 	public static int taille=8;
@@ -46,8 +43,9 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 	private Image[] iconPiecesNoires;
 	private Case [][]tabCase;
 	private Echiquier echiquier;
-	private String messageVictoireBlanc;
-	private String messageVictoireNoir;
+	private static String messageVictoireBlanc="Les Blancs ont gagnés!!!";
+	private static String messageVictoireNoir="Les Noirs ont gagnés!!!";
+	private static String messagePat="Il y a Pat, c'est au tour d'un joueur mais il ne peut pas jouer et il n'est pas en echec. \nPersonne ne remporte la partie.";
 	private Icon iconVictoireBlanc;
 	private Icon iconVictoireNoir;
 	private Icon iconPat;
@@ -55,7 +53,9 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 	private boolean finie;
 	private boolean enAttente;
 	private Promotion promotion;
-	public Partie() throws FileNotFoundException {
+	private Thread tourOrdinateur;
+	private static Partie instance=null;
+	private Partie() {
 		this.plateau=new JPanel();
 		this.plateauLayout=new PlateauLayout(taille,taille);
 		this.plateauLayout.setReversed(false);
@@ -64,11 +64,6 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 		this.setLayout(new EchiquierLayout());
 		this.add(this.plateau);
 		this.setBackground(couleurBords);
-		this.firstMouseEvent=null;
-		this.coupsPossibles=null;
-		this.initIcon();
-		this.changerDeSens=true;
-		this.ordinateur=null;
 		this.tabCase=new Case[taille][taille];
 		int i,j;
 		for(i=0;i<taille;i++) {
@@ -79,56 +74,54 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 				this.plateau.add(tabCase[j][i]);
 			}
 		}
-		this.echiquier=new Echiquier();
-		this.updatePlateau();
-		this.messageVictoireNoir="Les Noirs ont gagnés!!!";
-		this.messageVictoireBlanc="Les Blancs ont gagnés!!!";
-		this.iconVictoireBlanc=null;
-		this.iconVictoireNoir=null;
-		this.iconPat=null;
-		this.finie=false;
-		this.promotion=null;
-		this.ordinateur=null;
 		this.setOpaque(true);
 	}
-	public Partie(int niveau,boolean couleurOrdinateur) throws FileNotFoundException {
-		this.plateau=new JPanel();
-		this.plateauLayout=new PlateauLayout(taille,taille);
-		this.plateauLayout.setReversed(false);
-		this.plateau.setLayout(this.plateauLayout);
-		this.plateau.setBackground(Color.black);
-		this.setLayout(new EchiquierLayout());
-		this.add(this.plateau);
-		this.setBackground(couleurBords);
+	public static Partie getInstance() {
+		if(instance==null) {
+			instance=new Partie();
+		}
+		return instance;
+	}
+	public void nouvellePartie() throws FileNotFoundException {
 		this.firstMouseEvent=null;
-		this.coupsPossibles=null;
+		this.coupsPossibles=new LinkedList<Coup>();
 		this.initIcon();
 		this.changerDeSens=true;
 		this.ordinateur=null;
-		this.tabCase=new Case[taille][taille];
-		int i,j;
-		for(i=0;i<taille;i++) {
-			for(j=0;j<taille;j++) {
-				tabCase[j][i]=new Case(new Coordonnee(j,i));
-				tabCase[j][i].addMouseListener(this);
-				tabCase[j][i].addMouseMotionListener(this);
-				this.plateau.add(tabCase[j][i]);
-			}
-		}
-		this.echiquier=new Echiquier();
-		this.updatePlateau();
-		this.messageVictoireNoir="Les Noirs ont gagnés!!!";
-		this.messageVictoireBlanc="Les Blancs ont gagnés!!!";
-		this.iconVictoireBlanc=null;
-		this.iconVictoireNoir=null;
-		this.iconPat=null;
 		this.finie=false;
 		this.promotion=null;
-		this.ordinateur=new Ordinateur(niveau,couleurOrdinateur,this.echiquier);
-		if(couleurOrdinateur) {
-			this.echiquier.joue(this.ordinateur.joue());
-			this.updatePlateau();
+		this.echiquier=new Echiquier();
+		this.updatePlateau();
+		for(Case tab[] : this.tabCase) {
+			for(Case temp : tab) {
+				temp.freeDragIcon();
+				temp.freeChoix();
+				temp.setDernierCoup(false);
+			}
 		}
+	}
+	public void nouvellePartie(int niveau,boolean couleurOrdinateur) throws FileNotFoundException {
+		this.firstMouseEvent=null;
+		this.coupsPossibles=new LinkedList<Coup>();
+		this.initIcon();
+		this.changerDeSens=true;
+		this.enAttente=false;
+		this.echiquier=new Echiquier();
+		this.updatePlateau();
+		for(Case tab[] : this.tabCase) {
+			for(Case temp : tab) {
+				temp.freeDragIcon();
+				temp.freeChoix();
+				temp.setDernierCoup(false);
+			}
+		}
+		this.ordinateur=new Ordinateur(niveau,couleurOrdinateur,this.echiquier, true);
+		if(couleurOrdinateur) {
+			Thread tourOrdinateur=new Thread(this);
+			tourOrdinateur.start();
+		}
+		this.finie=false;
+		this.promotion=null;
 	}
 	private void updatePlateau() {
 		int i,j;
@@ -193,14 +186,17 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 		ImageIcon imgIcon;
 		File imageURL;
 		String nomFichier;
+		this.iconVictoireBlanc=null;
+		this.iconVictoireNoir=null;
+		this.iconPat=null;
 		this.iconPiecesBlanches=new Image[6];
 		this.iconPiecesNoires=new Image[6];
 		for(i=0;i<6;i++) {
 			nomFichier=tabNomPiece[i]+"Blanc"+".png";
-			imageURL = new File("icons/"+nomFichier);
+			imageURL = new File(Main.cheminIcons+nomFichier);
 			if (!imageURL.exists()) {
-				System.err.println("Resource not found: " + "icons/"+nomFichier);
-				throw new FileNotFoundException("Icone du "+ tabNomPiece[i] +" "+"Blanc"+ ": icons/"+nomFichier +" non trouvé.");
+				System.err.println("Resource not found: " + Main.cheminIcons+nomFichier);
+				throw new FileNotFoundException("Icone du "+ tabNomPiece[i] +" Blanc : " +Main.cheminIcons+nomFichier +" non trouvé.");
 			} else {
 				try {
 					imgIcon = new ImageIcon(imageURL.toURI().toURL(), tabNomPiece[i] +" "+"Blanc");
@@ -211,10 +207,10 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 				}
 			}
 			nomFichier=tabNomPiece[i]+"Noir"+".png";
-			imageURL = new File("icons/"+nomFichier);
+			imageURL = new File(Main.cheminIcons+nomFichier);
 			if (!imageURL.exists()) {
-				System.err.println("Resource not found: " + "icons/"+nomFichier);
-				throw new FileNotFoundException("Icone du "+ tabNomPiece[i] +" "+"Noir"+ ": icons/"+nomFichier +" non trouvé.");
+				System.err.println("Resource not found: " + Main.cheminIcons+nomFichier);
+				throw new FileNotFoundException("Icone du "+ tabNomPiece[i] +" Noir : "+Main.cheminIcons+nomFichier +" non trouvé.");
 			} else {
 				try {
 					imgIcon = new ImageIcon(imageURL.toURI().toURL(), tabNomPiece[i] +" "+"Noir");
@@ -225,10 +221,10 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 				}
 			}
 		}
-		imageURL = new File("icons/sablier.png");
+		imageURL = new File(Main.cheminIcons+"sablier.png");
 		if (!imageURL.exists()) {
-			System.err.println("Resource not found: " + "icons/sablier.png");
-			throw new FileNotFoundException("Icone du sablier : icons/sablier.png non trouvée.");
+			System.err.println("Resource not found: " + Main.cheminIcons+"sablier.png");
+			throw new FileNotFoundException("Icone du sablier : "+Main.cheminIcons+"sablier.png non trouvée.");
 		} else {
 			try {
 				imgIcon = new ImageIcon(imageURL.toURI().toURL(), "Sablier");
@@ -241,7 +237,7 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 	}
 	
 	private boolean contient(Coordonnee c) {
-		if(this.coupsPossibles!=null) {
+		if(!this.coupsPossibles.isEmpty()) {
 			for(Coup coup : this.coupsPossibles) {
 				if(coup.getArrivee().equals(c)) {
 					return true;
@@ -257,12 +253,7 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 	public boolean isFinie() {
 		return finie;
 	}
-	
-	public void enAttenteOrdinateur() {
-		Graphics g=this.getGraphics();
-		System.out.println(sablier.getHeight(this));
-		g.drawImage(sablier, 0, 0, this);
-	}
+
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -305,9 +296,15 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 		g.drawLine(this.getWidth()-1, 0, 0, this.getHeight()-1);
 		g.drawLine(0, 1, this.getWidth()-1, this.getHeight());
 		g.drawLine(this.getWidth(), 1, 1, this.getHeight());
+		if(this.enAttente) {
+			g.drawImage(this.sablier, 0, 0, gap, gap, this);
+			g.drawImage(this.sablier, this.getWidth()-gap, 0, gap, gap, this);
+			g.drawImage(this.sablier, 0, this.getHeight()-gap, gap, gap, this);
+			g.drawImage(this.sablier, this.getWidth()-gap, this.getHeight()-gap, gap, gap, this);
+		}
 	}
 	
-
+	
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		int dx=Math.abs(e.getX()-this.firstMouseEvent.getX());
@@ -317,7 +314,7 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 		Case coinHG,coinBG,coinHD,coinBD;
 		Component compo;
 		Image icon;
-		if((dx>5 || dy>5)) {
+		if((dx>5 || dy>5) && !this.enAttente) {
 			for(Case tab[] : this.tabCase) {
 				for(Case temp : tab) {
 					temp.freeDragIcon();
@@ -354,7 +351,7 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 				}
 			}
 			if(!c.isDraging()) {
-				if(this.coupsPossibles!=null) {
+				if(!this.coupsPossibles.isEmpty()) {
 					for(Coup coup : this.coupsPossibles) {
 						this.getCase(coup.getArrivee()).setSubrillance(false);
 					}
@@ -399,123 +396,144 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		Case cDest,c=(Case)this.firstMouseEvent.getSource();
-		Component compo;
-		String options[]= {"Oui","Non"};
-		int finDePartie=-1;
-		if(c.isDraging()) {
-			compo=this.plateau.getComponentAt(e.getX()+c.getX(), e.getY()+c.getY());
-			if(compo!=null && compo.getClass()==Case.class) {
-				cDest=(Case)compo;
-				finDePartie=this.joue(cDest.getCoordonnee());
-				cDest.setSubrillance(false);
-			}
-			for(Case tab[] : this.tabCase) {
-				for(Case temp : tab) {
-					temp.freeDragIcon();
+		if(!this.enAttente) {
+			Case cDest,c=(Case)this.firstMouseEvent.getSource();
+			Component compo;
+			int finDePartie=-1;
+			if(c.isDraging()) {
+				compo=this.plateau.getComponentAt(e.getX()+c.getX(), e.getY()+c.getY());
+				if(compo!=null && compo.getClass()==Case.class) {
+					cDest=(Case)compo;
+					finDePartie=this.chercheCoup(cDest.getCoordonnee());
+					cDest.setSubrillance(false);
 				}
-			}
-			c.setDraging(false);
-			this.coupsPossibles=null;
-		}
-		else {
-			if(this.coupsPossibles!=null) {
-				for(Coup coup : this.coupsPossibles) {
-					this.getCase(coup.getArrivee()).setSubrillance(false);
+				for(Case tab[] : this.tabCase) {
+					for(Case temp : tab) {
+						temp.freeDragIcon();
+					}
 				}
-				finDePartie=this.joue(c.getCoordonnee());
-				this.coupsPossibles=this.echiquier.selectionne(c.getCoordonnee());
-				if(this.coupsPossibles!=null) {
+				c.setDraging(false);
+				this.coupsPossibles.clear();;
+			}
+			else {
+				if(!this.coupsPossibles.isEmpty()) {
 					for(Coup coup : this.coupsPossibles) {
-						this.getCase(coup.getArrivee()).setSubrillance(true);
+						this.getCase(coup.getArrivee()).setSubrillance(false);
 					}
-				}
-			}
-			else {	
-				//System.out.println("prout");
-				if(this.promotion!=null) {
-					if(c.isChoix()) {
-						this.promotion.choixPromo(c.getChoix());
-						c.setIcon(c.getChoixIcon());
-						finDePartie=this.echiquier.joue(this.promotion);
-						this.coupsPossibles=null;
-					}
-					for(Case tab[] : this.tabCase) {
-						for(Case temp : tab) {
-							temp.freeChoix();
+					finDePartie=this.chercheCoup(c.getCoordonnee());
+					this.coupsPossibles=this.echiquier.selectionne(c.getCoordonnee());
+					if(!this.coupsPossibles.isEmpty()) {
+						for(Coup coup : this.coupsPossibles) {
+							this.getCase(coup.getArrivee()).setSubrillance(true);
 						}
 					}
-					this.promotion=null;
 				}
-				this.coupsPossibles=this.echiquier.selectionne(c.getCoordonnee());
-				if(this.coupsPossibles!=null) {
-					for(Coup coup : this.coupsPossibles) {
-						this.getCase(coup.getArrivee()).setSubrillance(true);
-					}
-				}
-			}
-		}
-		this.updatePlateau();
-		this.repaint();
-		switch(finDePartie) {
-			case Echiquier.BLANC_GAGNE:
-				JOptionPane.showMessageDialog(this,this.messageVictoireBlanc, "Victoire des Blancs!!!", JOptionPane.INFORMATION_MESSAGE, this.iconVictoireBlanc);
-				this.finie=true;
-				break;
-			case Echiquier.NOIR_GAGNE:
-				JOptionPane.showMessageDialog(this,this.messageVictoireNoir, "Victoire des Noirs!!!", JOptionPane.INFORMATION_MESSAGE, this.iconVictoireNoir);
-				this.finie=true;
-				break;
-			case Echiquier.PAT:
-				JOptionPane.showMessageDialog(this,"Il y a Pat, c'est au tour d'un joueur mais il ne peut pas jouer et il n'est pas en echec. \nPersonne ne remporte la partie.", "Pat", JOptionPane.INFORMATION_MESSAGE, this.iconPat);
-				this.finie=true;
-				break;
-			case Echiquier.PARTIE_CONTINUE:
-				if(this.ordinateur!=null && this.echiquier.isTour()==this.ordinateur.isCouleur()) {
-					this.enAttenteOrdinateur();
-					this.joueOrdinateur();
-				}
-				break;
-			default:
-				if(this.promotion!=null) {
-					Image icon[]=this.promotion.getpDepart().isBlanc()?this.iconPiecesBlanches:this.iconPiecesNoires;
-					if(this.promotion.getArrivee().getX()==0) {
-						this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-						this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Fou, icon[3]);
-						this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Choix.Cavalier, icon[2]);
-						this.getCase(this.promotion.getArrivee().droite().droite().droite()).setChoixIcon(Choix.Tour, icon[1]);
-					}
-					else {
-						if(this.promotion.getArrivee().getX()==taille-1) {
-							this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-							this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Fou, icon[3]);
-							this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Choix.Cavalier, icon[2]);
-							this.getCase(this.promotion.getArrivee().gauche().gauche().gauche()).setChoixIcon(Choix.Tour, icon[1]);
+				else {	
+					if(this.promotion!=null) {
+						if(c.isChoix()) {
+							this.promotion.choixPromo(c.getChoix());
+							c.setIcon(c.getChoixIcon());
+							finDePartie=this.joue(this.promotion);
+							this.coupsPossibles.clear();;
 						}
-						else {
-							if(this.promotion.getArrivee().getX()==taille-2) {
-								this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-								this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Fou, icon[3]);
-								this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Choix.Cavalier, icon[2]);
-								this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Tour, icon[1]);
-							}
-							else {
-								this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-								this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Fou, icon[3]);
-								this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Choix.Cavalier, icon[2]);
-								this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Tour, icon[1]);
+						for(Case tab[] : this.tabCase) {
+							for(Case temp : tab) {
+								temp.freeChoix();
 							}
 						}
+						this.promotion=null;
+					}
+					this.coupsPossibles=this.echiquier.selectionne(c.getCoordonnee());
+					if(!this.coupsPossibles.isEmpty()) {
+						for(Coup coup : this.coupsPossibles) {
+							this.getCase(coup.getArrivee()).setSubrillance(true);
+						}
 					}
 				}
-				break;
+			}
+			this.updatePlateau();
+			this.repaint();
+			this.finPartie(finDePartie);
 		}
 		this.firstMouseEvent=null;
+	}
+	private void joueOrdinateur() {
+		this.enAttente=true;
+		Coup coupOrdinateur=this.ordinateur.joue();
+		int fin;
+		if(this.enAttente) {
+			fin=this.joue(coupOrdinateur);
+			this.updatePlateau();
+			this.repaint();
+			this.finPartie(fin);
+			this.enAttente=false;
+		}
+	}
+	private int chercheCoup(Coordonnee destination) {//cherche le coup ayant pour destination "destination dans la liste coupsPossibles renvoie -1 si il n'existe pas sinon renvoie le code finDePartie
+		Coup coup;
+		int retour=-1,i=1;
+		if(!this.coupsPossibles.isEmpty()) {
+			coup=this.coupsPossibles.get(0);
+			while(!coup.getArrivee().equals(destination) && i<this.coupsPossibles.size()) {
+				coup=this.coupsPossibles.get(i);
+				i++;
+			}
+			if(coup.getArrivee().equals(destination)) {
+				if(coup.getClass()==Promotion.class) {//Si le coup est une promotion il faut que le joueur choisissent en quoi il veut promouvoir son pion
+					this.promotion=(Promotion)coup;
+				}
+				else {
+					retour=this.joue(coup); 
+				}
+			}
+		}
+		return retour;
+	}
+	private int joue(Coup c) {
+		Coup dernier = this.echiquier.getDernierCoup();
+		if(dernier!=null) {
+			this.getCase(dernier.getArrivee()).setDernierCoup(false);
+			this.getCase(dernier.getDepart()).setDernierCoup(false);
+		}
+		this.getCase(c.getArrivee()).setDernierCoup(true);
+		this.getCase(c.getDepart()).setDernierCoup(true);
+		return this.echiquier.joue(c);
+	}
+	public void annuler() {
+		Coup dernier;
+		if(this.ordinateur!=null) {
+			if(this.enAttente) {
+				this.enAttente=false;
+			}
+			else {
+				dernier = this.echiquier.getDernierCoup();
+				if(dernier!=null) {
+					this.getCase(dernier.getArrivee()).setDernierCoup(false);
+					this.getCase(dernier.getDepart()).setDernierCoup(false);
+				}
+				this.echiquier.annuler();
+			}
+		}
+		dernier = this.echiquier.getDernierCoup();
+		if(dernier!=null) {
+			this.getCase(dernier.getArrivee()).setDernierCoup(false);
+			this.getCase(dernier.getDepart()).setDernierCoup(false);
+		}
+		this.echiquier.annuler();
+		dernier = this.echiquier.getDernierCoup();
+		if(dernier!=null) {
+			this.getCase(dernier.getArrivee()).setDernierCoup(true);
+			this.getCase(dernier.getDepart()).setDernierCoup(true);
+		}
+		for(Coup coup : this.coupsPossibles) {
+			this.getCase(coup.getArrivee()).setSubrillance(false);
+		}
+		this.coupsPossibles.clear();
 		this.updatePlateau();
 		this.repaint();
 	}
-	private void joueOrdinateur() {
-		switch(this.echiquier.joue(this.ordinateur.joue())) {
+	public void finPartie(int finDePartie) {
+		switch(finDePartie) {
 		case Echiquier.BLANC_GAGNE:
 			JOptionPane.showMessageDialog(this,this.messageVictoireBlanc, "Victoire des Blancs!!!", JOptionPane.INFORMATION_MESSAGE, this.iconVictoireBlanc);
 			this.finie=true;
@@ -525,64 +543,58 @@ public class Partie extends JPanel implements MouseMotionListener,MouseListener{
 			this.finie=true;
 			break;
 		case Echiquier.PAT:
-			JOptionPane.showMessageDialog(this,"Il y a Pat, c'est au tour d'un joueur mais il ne peut pas jouer et il n'est pas en echec. \nPersonne ne remporte la partie.", "Pat", JOptionPane.INFORMATION_MESSAGE, this.iconPat);
+			JOptionPane.showMessageDialog(this,this.messagePat, "Pat", JOptionPane.INFORMATION_MESSAGE, this.iconPat);
 			this.finie=true;
 			break;
 		case Echiquier.PARTIE_CONTINUE:
-			break;
-		default:
-			JOptionPane.showMessageDialog(this, "L'ordinateur ne sait pas quoi jouer!!!");
-			break;
-		}
-		this.updatePlateau();
-	}
-	private int joue(Coordonnee destination) {
-		Coup coup;
-		int retour=-1,i=1;
-		if(this.coupsPossibles!=null && !this.coupsPossibles.isEmpty()) {
-			coup=this.coupsPossibles.get(0);
-			while(!coup.getArrivee().equals(destination) && i<this.coupsPossibles.size()) {
-				coup=this.coupsPossibles.get(i);
-				i++;
+			if(this.ordinateur!=null && this.echiquier.isTour()==this.ordinateur.isCouleur()) {
+				tourOrdinateur=new Thread(this);
+				tourOrdinateur.start();
 			}
-			if(coup.getArrivee().equals(destination)) {
-				if(coup.getClass()==Promotion.class) {
-					this.promotion=(Promotion)coup;
+			break;
+		default://L'echiquier n'a pas été modifié soit aucun coup n'a été joué soit une promotion de pion est en cours
+			if(this.promotion!=null) {
+				this.afficherChoixPromotion();
+			}
+			break;
+	}
+	}
+	public void afficherChoixPromotion() {
+		Image icon[]=this.promotion.getpDepart().isBlanc()?this.iconPiecesBlanches:this.iconPiecesNoires;
+		if(this.promotion.getArrivee().getX()==0) {
+			this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
+			this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Fou, icon[3]);
+			this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Choix.Cavalier, icon[2]);
+			this.getCase(this.promotion.getArrivee().droite().droite().droite()).setChoixIcon(Choix.Tour, icon[1]);
+		}
+		else {
+			if(this.promotion.getArrivee().getX()==taille-1) {
+				this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
+				this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Fou, icon[3]);
+				this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Choix.Cavalier, icon[2]);
+				this.getCase(this.promotion.getArrivee().gauche().gauche().gauche()).setChoixIcon(Choix.Tour, icon[1]);
+			}
+			else {
+				if(this.promotion.getArrivee().getX()==taille-2) {
+					this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
+					this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Fou, icon[3]);
+					this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Choix.Cavalier, icon[2]);
+					this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Tour, icon[1]);
 				}
 				else {
-					retour=this.echiquier.joue(coup);
-					/*if(coup.getClass()==Coup.class) {
-						this.getCase(coup.getArrivee()).setIcon(this.getCase(coup.getDepart()).getIcon());
-						this.getCase(coup.getDepart()).setIcon(null);
-					}
-					else {
-						if(coup.getClass()==Roque.class) {
-							Roque r=(Roque)coup;
-							this.getCase(r.getArrivee()).setIcon(this.getCase(r.getDepart()).getIcon());
-							this.getCase(r.getDepart()).setIcon(null);
-							this.getCase(r.getArriveeTour()).setIcon(this.getCase(r.getDepartTour()).getIcon());
-							this.getCase(r.getDepartTour()).setIcon(null);
-						}
-						else {
-							PriseEnPassant p=(PriseEnPassant)coup;
-							this.getCase(p.getArrivee()).setIcon(this.getCase(p.getDepart()).getIcon());
-							this.getCase(p.getDepart()).setIcon(null);
-							this.getCase(p.getcPrise()).setIcon(null);
-						}
-					}*/
+					this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
+					this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Fou, icon[3]);
+					this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Choix.Cavalier, icon[2]);
+					this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Tour, icon[1]);
 				}
 			}
 		}
-		return retour;
 	}
-	public void annuler() {
-		// TODO Auto-generated method stub
-		this.echiquier.annuler();
-		if(this.ordinateur!=null && this.ordinateur.isCouleur()==this.echiquier.isTour()) {
-			this.echiquier.annuler();
-		}
-		this.updatePlateau();
-		this.repaint();
+	@Override
+	public void run() {
+		this.joueOrdinateur();
 	}
 	
 }
+
+

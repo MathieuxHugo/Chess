@@ -65,5 +65,13 @@ public class Fou extends Piece {
 		// TODO Auto-generated method stub
 		return FOU;
 	}
+	@Override
+	public int valeur() {
+		return 3;
+	}
+	@Override
+	public double valeurBerliner() {
+		return 3.33;
+	}
 	
 }

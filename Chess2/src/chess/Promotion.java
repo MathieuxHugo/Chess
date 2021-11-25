@@ -9,6 +9,11 @@ public class Promotion extends Coup {
 		super(depart, arrivee, p, prise);
 		// TODO Auto-generated constructor stub
 	}
+	private Promotion(Coordonnee depart, Coordonnee arrivee, Piece p, Piece prise, Piece prom) {
+		super(depart, arrivee, p, prise);
+		this.promo=prom.clone();
+		// TODO Auto-generated constructor stub
+	}
 	public void choixPromo(Choix choix) {
 		switch(choix) {
 		case Cavalier:
@@ -30,6 +35,10 @@ public class Promotion extends Coup {
 	public Piece getPromo() {
 		return promo;
 	}
-	
+
+	@Override
+	public Promotion clone() {
+		return new Promotion(this.getDepart(),this.getArrivee(),this.getpDepart(),this.getPrise(),this.getPromo());
+	}
 
 }

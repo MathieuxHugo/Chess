@@ -59,4 +59,16 @@ public class Tour extends Piece {
 		return TOUR;
 	}
 
+	@Override
+	public int valeur() {
+		// TODO Auto-generated method stub
+		return 5;
+	}
+
+	@Override
+	public double valeurBerliner() {
+		// TODO Auto-generated method stub
+		return 5.1;
+	}
+
 }

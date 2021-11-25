@@ -36,6 +36,7 @@ public abstract class Piece {
 	public abstract Piece clone();
 	@Override
 	public abstract String toString();
-	
+	public abstract int valeur();
+	public abstract double valeurBerliner();
 	
 }

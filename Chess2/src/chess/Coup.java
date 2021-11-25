@@ -1,11 +1,12 @@
 package chess;
 
 
-public class Coup {
+public class Coup implements Cloneable{
 	private Coordonnee depart;
 	private Coordonnee arrivee;
 	private Piece pDepart;
 	private Piece prise;
+	private boolean echec;
 	protected Coup(Case c, Case cDest) {
 		this.depart=c.getCoordonnee();
 		this.arrivee=cDest.getCoordonnee();
@@ -50,6 +51,28 @@ public class Coup {
 	public void setPrise(Piece prise) {
 		this.prise = prise;
 	}
+
+	public boolean isEchec() {
+		return echec;
+	}
+
+	public void setEchec(boolean echec) {
+		this.echec = echec;
+	}
+
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		// TODO Auto-generated method stub
+		return super.clone();
+	}
+
+	@Override
+	public String toString() {
+		String milieu=this.isPrise()?"x"+this.prise:"->";
+		String fin=this.echec?"+":"";
+		return this.pDepart.toString()+this.depart+milieu+this.arrivee.toString()+fin;
+	}
+	
 	
 	
 }

@@ -21,7 +21,6 @@ public class Main implements ActionListener {
 	private JPanel cardHolder;
 	private JPanel partie;
 	private JPanel menu;
-	private Partie jeu;
 	private final String REPRENDRE_PARTIE="Reprendre la Partie";
 	private final String NOUVELLE_PARTIE="Nouvelle Partie";
 	private final String NOUVELLE_PARTIE_C_O="Nouvelle Partie Contre l'Ordinateur";
@@ -31,12 +30,15 @@ public class Main implements ActionListener {
 	private final String PARTIE="PLATEAU";
 	private final String REPAINT="Repaint";
 	private final String ANNULER="Annuler";
+	private PopUpDeDebut debut;
+	public static String cheminIcons="icons/";
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Main m=new Main();
 	}
 	public Main() {
 		JFrame fenetre=new JFrame();
+		debut = new PopUpDeDebut(fenetre);
 		cards=new CardLayout();
 		menu=createMenu();
 		cardHolder=new JPanel();
@@ -91,7 +93,6 @@ public class Main implements ActionListener {
 		JPanel menuD=new JPanel();
 		JPanel menuG=new JPanel();
 		JButton retour=this.createButton(MENU);
-		JButton repaint= this.createButton(REPAINT);
 		JButton annuler= this.createButton(ANNULER);
 		partie.setLayout(new PartieLayout());
 		menuG.setLayout(new MenuLayout());
@@ -101,12 +102,8 @@ public class Main implements ActionListener {
 		menuG.add(retour);
 		partie.add(menuG);
 		menuD.add(annuler);
-		repaint.setActionCommand(REPAINT);
-		repaint.addActionListener(this);
-		menuD.add(repaint);
 		partie.add(menuD);
-		this.jeu = new Partie();
-		partie.add(this.jeu);
+		partie.add(Partie.getInstance());
 		partie.setVisible(true);
 		return partie;
 	}
@@ -123,36 +120,25 @@ public class Main implements ActionListener {
 				cards.show(cardHolder, PARTIE);
 				break;
 			case NOUVELLE_PARTIE:
-				partie.remove(this.jeu);
-			try {
-				this.jeu=new Partie();
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-
-				JOptionPane.showMessageDialog(this.partie, e1.getMessage());
-				System.exit(0);
-				
-			}
-				partie.add(this.jeu);
-				partie.repaint();
-				cards.show(cardHolder, PARTIE);
-				break;
-			case NOUVELLE_PARTIE_C_O:
-				partie.remove(this.jeu);
+				//partie.remove(this.jeu);
 				try {
-					this.jeu=new Partie(1,true);
+					Partie.getInstance().nouvellePartie();
 				} catch (FileNotFoundException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-
 					JOptionPane.showMessageDialog(this.partie, e1.getMessage());
-					System.exit(0);
-					
-				}	
-					partie.add(this.jeu);
+					System.exit(0);	
+				}
+				//partie.add(this.jeu);
+				//partie.repaint();
+				cards.show(cardHolder, PARTIE);
+				break;
+			case NOUVELLE_PARTIE_C_O:
+				//this.debut.set
+				if(this.debut.ouvrir()) {
 					partie.repaint();
 					cards.show(cardHolder, PARTIE);
+				}
 				break;
 			case CHARGER_PARTIE:
 				break;
@@ -160,7 +146,7 @@ public class Main implements ActionListener {
 				System.exit(0);
 			break;
 			case MENU:
-				if(this.jeu.isFinie()) {
+				if(Partie.getInstance().isFinie()) {
 					this.cardHolder.remove(menu);
 					this.menu=this.createMenu();
 					this.cardHolder.add(menu,MENU);
@@ -172,11 +158,8 @@ public class Main implements ActionListener {
 				}
 				cards.show(cardHolder, MENU);
 				break;
-			case REPAINT:
-				this.jeu.repaint();
-				break;
 			case ANNULER:
-				this.jeu.annuler();
+				Partie.getInstance().annuler();
 			default:
 				break;
 		}

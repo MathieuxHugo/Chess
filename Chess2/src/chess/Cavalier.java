@@ -70,4 +70,16 @@ public class Cavalier extends Piece {
 		// TODO Auto-generated method stub
 		return CAVALIER;
 	}
+
+
+	@Override
+	public int valeur() {
+		return 3;
+	}
+
+
+	@Override
+	public double valeurBerliner() {
+		return 3.2;
+	}
 }

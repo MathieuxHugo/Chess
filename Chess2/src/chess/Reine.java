@@ -101,4 +101,15 @@ public class Reine extends Piece {
 		return REINE;
 	}
 
+	@Override
+	public int valeur() {
+		return 9;
+	}
+
+	@Override
+	public double valeurBerliner() {
+		return 8.8;
+	}
+	
+
 }

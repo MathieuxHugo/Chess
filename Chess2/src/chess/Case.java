@@ -14,6 +14,22 @@ public class Case {
 		this.menace = new LinkedList<Coordonnee>();
 		this.coordonnee = coordonnee;
 	}
+	
+	
+	private Case(Piece piece, LinkedList<Coordonnee> attaque, LinkedList<Coordonnee> menace, Coordonnee coordonnee) {
+		super();
+		if(piece!=null) {
+			this.piece = piece.clone();
+		}
+		else {
+			this.piece=null;
+		}
+		this.attaque = (LinkedList<Coordonnee>)attaque.clone();
+		this.menace = (LinkedList<Coordonnee>)menace.clone();
+		this.coordonnee = coordonnee;
+	}
+
+
 	public Piece getPiece() {
 		return piece;
 	}
@@ -78,5 +94,8 @@ public class Case {
 			}
 		}
 		return false;
+	}
+	public Case copie() {
+		return new Case(this.piece,this.attaque,this.menace,this.coordonnee);
 	}
 }

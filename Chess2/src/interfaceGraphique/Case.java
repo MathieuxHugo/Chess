@@ -21,7 +21,7 @@ public class Case extends JComponent{
 	private boolean dernierCoup;
 	private static Color couleurCasesBlanches=Color.WHITE;
 	private static Color couleurCasesNoires=Color.DARK_GRAY;
-	private static Color couleurDernierCoup=new Color(180,180,40);
+	private static Color couleurDernierCoup=new Color(80,120,40);
 	private Image dragIcon;
 	private Image choixIcon;
 	private Choix choix;

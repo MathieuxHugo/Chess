@@ -70,4 +70,14 @@ public class Roi extends Piece {
 		return ROI;
 	}
 
+	@Override
+	public int valeur() {
+		return 0;
+	}
+
+	@Override
+	public double valeurBerliner() {
+		return 0;
+	}
+
 }

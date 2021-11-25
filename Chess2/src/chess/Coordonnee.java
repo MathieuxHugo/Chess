@@ -30,8 +30,11 @@ public class Coordonnee implements Comparable{
 	}
 	@Override
 	public boolean equals(Object obj) {
-		Coordonnee c=(Coordonnee)obj;
-		return this.x==c.getX() && this.y==c.getY();
+		if(obj instanceof Coordonnee) {
+			Coordonnee c=(Coordonnee)obj;
+			return this.x==c.getX() && this.y==c.getY();
+		}
+		return false;
 	}
 	public int differenceX(Coordonnee c) {
 		return Math.abs(c.getX()-this.getX());

@@ -12,7 +12,7 @@ public class Echiquier{
 	private Coordonnee roiBlanc;
 	private boolean tour;
 	private int cptTour;
-	private TreeMap<Coordonnee,LinkedList<Coup>> coupsPossibles;
+	private LinkedList<Coup> coupsPossibles;
 	private LinkedList<Coup> listCoupsJoues;
 	public static final int BLANC_GAGNE=1;
 	public static final int NOIR_GAGNE=2;
@@ -23,11 +23,35 @@ public class Echiquier{
 		this.plateau = new Case[taille][taille];
 		this.tour = true;
 		this.cptTour = 0;
-		this.coupsPossibles=new TreeMap<Coordonnee,LinkedList<Coup>>();
+		this.coupsPossibles=new LinkedList<Coup>();
 		this.initPlateau();
 		this.updateCoupsPossibles();
 		this.listCoupsJoues=new LinkedList<Coup>();
 	}
+	
+	private static Case[][] copier(Case[][] tab){
+		int i,j;
+		Case retour[][]=new Case[tab.length][tab.length];
+		for(i=0;i<tab.length;i++) {
+			for(j=0;j<tab.length;j++) {
+				retour[i][j]=tab[i][j].copie();
+			}
+		}
+		return retour;
+	}
+	
+	private Echiquier(Case[][] plateau, Coordonnee roiNoir, Coordonnee roiBlanc, boolean tour, int cptTour,
+			LinkedList<Coup> coupsPossibles, LinkedList<Coup> listCoupsJoues) {
+		super();
+		this.plateau = copier(plateau);
+		this.roiNoir = roiNoir;
+		this.roiBlanc = roiBlanc;
+		this.tour = tour;
+		this.cptTour = cptTour;
+		this.coupsPossibles = (LinkedList<Coup>)coupsPossibles.clone();
+		this.listCoupsJoues = (LinkedList<Coup>)listCoupsJoues.clone();
+	}
+
 	private void initPlateau(){
 		int i;
 		this.roiBlanc=new Coordonnee(4,7);
@@ -73,6 +97,15 @@ public class Echiquier{
 		for(i=0;i<taille*taille;i++) {
 			this.plateau[i%taille][i/taille]=new Case(null,new Coordonnee(i%taille,i/taille));
 		}
+
+		this.roiBlanc=new Coordonnee(4,7);
+		this.roiNoir=new Coordonnee(4,0);
+		this.setCase(new Coordonnee(4,0),new Roi(false));
+		this.setCase(new Coordonnee(4,7),new Roi(true));
+		this.setCase(new Coordonnee(6,6), new Tour(true));
+		this.setCase(new Coordonnee(3,6), new Fou(false));
+		this.setCase(new Coordonnee(2,1), new Tour(false));
+		this.setCase(new Coordonnee(5,2), new Tour(false));
 	}
 	protected void chgTour() {
 		this.tour=!tour;
@@ -228,33 +261,36 @@ public class Echiquier{
 	}
 	protected Coup protege(boolean couleur, Coordonnee c, Coordonnee cDest) {
 		Coup retour=this.deplacerAux(c, cDest);
-		boolean menace=false;
+		boolean menaceNoir=false,menaceBlanc=false;
 		if(retour!=null) {
-			if(this.getCase(cDest).isRoi()) {
-				menace=this.getCase(cDest).estMenaceePar(!couleur, plateau);//le roi a été déplacé
-			}
-			else {
+				menaceBlanc=this.getCase(roiBlanc).estMenaceePar(!couleur, plateau);
+				menaceNoir=this.getCase(roiNoir).estMenaceePar(!couleur, plateau);
+				this.annulerAux(retour);
 				if(couleur) {
-					menace=this.getCase(roiBlanc).estMenaceePar(!couleur, plateau);
+					if(menaceBlanc) {
+						return null;
+					}
+					else {
+						retour.setEchec(menaceNoir);
+					}
 				}
-				else {	
-					menace=this.getCase(roiNoir).estMenaceePar(!couleur, plateau);
+				else {
+					if(menaceNoir) {
+						return null;
+					}
+					else {
+						retour.setEchec(menaceBlanc);
+					}
 				}
-			}
-			this.annulerAux(retour);
-			if(menace) {
-				retour=null;
-			}
 		}
 		return retour;
 	}
 	private void updateCoupsPossibles() {
 		int i,j;
 		Case c;
-		LinkedList<Coup> temp=new LinkedList<Coup>();
+		this.coupsPossibles=new LinkedList<Coup>();
 		Coup coup;
 		Coordonnee destination;
-		this.coupsPossibles.clear();
 		for(i=0;i<taille;i++) {
 			for(j=0;j<taille;j++) {
 				c=this.getCase(i,j);
@@ -264,13 +300,9 @@ public class Echiquier{
 						//System.out.println(c.getPiece()+"->:"+destination+this.getCase(roiNoir).estMenaceePar(true, plateau));
 						coup=this.protege(tour, c.getCoordonnee(), destination);
 						if(coup!=null) { 
-							temp.add(coup);
+							this.coupsPossibles.add(coup);
 						}
 					}
-					if(!temp.isEmpty()) {
-						this.coupsPossibles.put(new Coordonnee(i,j), (LinkedList<Coup>)temp.clone());
-					}
-					temp.clear();
 				}
 			}
 		}
@@ -280,6 +312,9 @@ public class Echiquier{
 	}
 	public boolean isTour() {
 		return tour;
+	}
+	public boolean isTour(boolean t) {
+		return tour==t;
 	}
 	protected Case getCase(Coordonnee c) {
 		return plateau[c.getX()][c.getY()];
@@ -316,10 +351,13 @@ public class Echiquier{
 		return this.plateau[x][y].getPiece();
 	}
 	public LinkedList<Coup> selectionne(Coordonnee c){
-		return this.coupsPossibles.get(c);
-	}
-	public Set<Coordonnee> pieceDeplacable(){
-		return this.coupsPossibles.keySet();
+		LinkedList<Coup> selection = new LinkedList<Coup>();
+		for(Coup coup : this.coupsPossibles) {
+			if(coup.getDepart().equals(c)) {
+				selection.add(coup);
+			}
+		}
+		return selection;
 	}
 	public int joue(Coup c) {
 		PriseEnPassant p;
@@ -398,8 +436,14 @@ public class Echiquier{
 			this.updateCoupsPossibles();
 		}
 	}
-	
-	public int score(boolean couleur) {
+	public void annulerLeger() {
+		if(!this.listCoupsJoues.isEmpty()) {
+			this.annulerAux(this.listCoupsJoues.removeLast());
+			tour=!tour;
+			this.cptTour--;
+		}
+	}
+	public double scoreDomination(boolean couleur) {
 		int i,j,sommeMenaceBlanche=0,sommeMenaceNoire=0;
 		Case temp;
 		for(i=0;i<taille;i++) {
@@ -422,4 +466,74 @@ public class Echiquier{
 			return sommeMenaceNoire-sommeMenaceBlanche;
 		}
 	}
+	public int score(boolean couleur) {
+		int i,j,sommePieceBlanche=0,sommePieceNoire=0;
+		Piece temp;
+		for(i=0;i<taille;i++) {
+			for(j=0;j<taille;j++) {
+				temp=this.getCase(i, j).getPiece();
+				if(temp!=null) {
+					if(temp.isBlanc()) {
+						sommePieceBlanche=temp.valeur()+sommePieceBlanche;
+					}
+					else {
+						sommePieceNoire=temp.valeur()+sommePieceNoire;
+					}
+				}
+			}
+		}
+		if(couleur) {
+			return sommePieceBlanche-sommePieceNoire;
+		}
+		else {
+			return sommePieceNoire-sommePieceBlanche;
+		}
+	}
+	public double scoreBerliner(boolean couleur) {
+		int i,j;
+		double sommePieceBlanche=0,sommePieceNoire=0;
+		Piece temp;
+		for(i=0;i<taille;i++) {
+			for(j=0;j<taille;j++) {
+				temp=this.getCase(i, j).getPiece();
+				if(temp!=null) {
+					if(temp.isBlanc()) {
+						sommePieceBlanche=temp.valeurBerliner()+sommePieceBlanche;
+					}
+					else {
+						sommePieceNoire=temp.valeurBerliner()+sommePieceNoire;
+					}
+				}
+			}
+		}
+		if(couleur) {
+			return sommePieceBlanche-sommePieceNoire;
+		}
+		else {
+			return sommePieceNoire-sommePieceBlanche;
+		}
+	}
+	public LinkedList<Coup> getCoupsPossibles() {
+		return coupsPossibles;
+	}
+	
+
+
+	public LinkedList<Coup> getListCoupsJoues() {
+		return listCoupsJoues;
+	}
+	public Coup getDernierCoup() {
+		try{
+			return this.listCoupsJoues.getLast();
+		}
+		catch(java.util.NoSuchElementException e) {
+			return null;
+		}
+	}
+
+	@Override
+	public Echiquier clone() {
+		return new Echiquier(this.plateau, this.roiNoir, this.roiBlanc, this.tour, this.cptTour,this.coupsPossibles, this.listCoupsJoues);
+	}
+	
 }

@@ -74,6 +74,14 @@ public class Pion extends Piece {
 		// TODO Auto-generated method stub
 		return PION;
 	}
+	@Override
+	public int valeur() {
+		return 1;
+	}
+	@Override
+	public double valeurBerliner() {
+		return 1;
+	}
 
 	
 

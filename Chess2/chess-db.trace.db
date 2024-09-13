@@ -1,0 +1,9 @@
+2024-09-13 19:14:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "COUPS VARCHAR(255)": "'1.Pionx=3,y=6->x=3,y=4+1.Pionx=3,y=1->x=3,y=3+1.Pionx=2,y=6->x=2,y=4+1.Pionx=3,y=3xPionx=2,y=4+1.Pionx=4,y=6->x=4,y=4+1.Pionx=1... (271)"; SQL statement:
+update Partie set computer=?, coups=? where name=? [22001-200]
+2024-09-13 19:14:16 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "COUPS VARCHAR(255)": "'1.Pionx=3,y=6->x=3,y=4+1.Pionx=3,y=1->x=3,y=3+1.Pionx=2,y=6->x=2,y=4+1.Pionx=3,y=3xPionx=2,y=4+1.Pionx=4,y=6->x=4,y=4+1.Pionx=1... (302)"; SQL statement:
+update Partie set computer=?, coups=? where name=? [22001-200]
+2024-09-13 19:14:21 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "COUPS VARCHAR(255)": "'1.Pionx=3,y=6->x=3,y=4+1.Pionx=3,y=1->x=3,y=3+1.Pionx=2,y=6->x=2,y=4+1.Pionx=3,y=3xPionx=2,y=4+1.Pionx=4,y=6->x=4,y=4+1.Pionx=1... (324)"; SQL statement:
+update Partie set computer=?, coups=? where name=? [22001-200]

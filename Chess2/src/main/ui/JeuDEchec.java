@@ -12,47 +12,30 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-
 import com.google.inject.Inject;
 
-public class JeuDEchec implements ActionListener {
+public class JeuDEchec {
 
     private CardLayout cards;
 
     private JPanel cardHolder;
 
-    private JPanel partieMenu;
-
     private JPanel menu;
-
-    private final String REPRENDRE_PARTIE = "Reprendre la Partie";
-
-    private final String NOUVELLE_PARTIE = "Nouvelle Partie";
-
-    private final String NOUVELLE_PARTIE_C_O = "Nouvelle Partie Contre l'Ordinateur";
-
-    private final String CHARGER_PARTIE = "Charger une partie";
-
-    private final String QUITTER = "Quitter";
-
-    private final String MENU = "MENU";
-
-    private final String PARTIE = "PLATEAU";
-
-    private final String REPAINT = "Repaint";
-
-    private final String ANNULER = "Annuler";
 
     private PopUpDeDebut debut;
 
     public static String cheminIcons = "icons/";
 
     private Partie partie;
-    
+
+    private ChessGameActionListener chessGameActionListener;
+
     @Inject
-    public JeuDEchec(Partie partie, JFrame fenetre, PopUpDeDebut popUpDeDebut) {
+    public JeuDEchec(Partie partie, JFrame fenetre, PopUpDeDebut popUpDeDebut, ChessGameActionListener chessGameActionListener) {
 	this.debut = popUpDeDebut;
 	this.partie = partie;
+	this.chessGameActionListener = chessGameActionListener;
+	this.chessGameActionListener.setJeu(this);
 	cards = new CardLayout();
 	menu = createMenu();
 	cardHolder = new JPanel();
@@ -63,16 +46,9 @@ public class JeuDEchec implements ActionListener {
 	fenetre.setVisible(true);
 	fenetre.add(cardHolder);
 	cardHolder.setLayout(cards);
-	cardHolder.add(menu, MENU);
-	try {
-	    partieMenu = this.createPartie();
-	    cardHolder.add(partie, PARTIE);
-	} catch (FileNotFoundException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	    JOptionPane.showMessageDialog(fenetre, e.getMessage());
-	    fenetre.dispose();// Si les icones n'existent pas on ferme la fenetre.
-	}
+	cardHolder.add(menu, ChessGameActionListener.MENU);
+	cardHolder.add(this.reprendreMenu(), ChessGameActionListener.REPRENDRE_MENU);
+	cardHolder.add(partie, ChessGameActionListener.PARTIE);
 	cards.first(cardHolder);
     }
 
@@ -83,10 +59,10 @@ public class JeuDEchec implements ActionListener {
 	menu.setOpaque(true);
 	menu.setBackground(Color.BLACK);
 	menu.setLayout(new MenuLayout());
-	menu.add(this.createButton(this.NOUVELLE_PARTIE));
-	menu.add(this.createButton(this.NOUVELLE_PARTIE_C_O));
-	menu.add(this.createButton(this.CHARGER_PARTIE));
-	menu.add(this.createButton(this.QUITTER));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.NOUVELLE_PARTIE));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.NOUVELLE_PARTIE_C_O));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.CHARGER_PARTIE));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.QUITTER));
 	return menu;
     }
 
@@ -97,80 +73,21 @@ public class JeuDEchec implements ActionListener {
 	menu.setOpaque(true);
 	menu.setBackground(Color.BLACK);
 	menu.setLayout(new MenuLayout());
-	menu.add(this.createButton(this.REPRENDRE_PARTIE));
-	menu.add(this.createButton(this.NOUVELLE_PARTIE));
-	menu.add(this.createButton(this.NOUVELLE_PARTIE_C_O));
-	menu.add(this.createButton(this.CHARGER_PARTIE));
-	menu.add(this.createButton(this.QUITTER));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.REPRENDRE_PARTIE));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.NOUVELLE_PARTIE));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.NOUVELLE_PARTIE_C_O));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.CHARGER_PARTIE));
+	menu.add(this.chessGameActionListener.createButton(ChessGameActionListener.QUITTER));
 	return menu;
     }
 
-    private JPanel createPartie() throws FileNotFoundException {
-	JPanel partie = new JPanel();
-	JPanel menuD = new JPanel();
-	JPanel menuG = new JPanel();
-	JButton retour = this.createButton(MENU);
-	JButton annuler = this.createButton(ANNULER);
-	partie.setLayout(new PartieLayout());
-	menuG.setLayout(new MenuLayout());
-	menuG.setBackground(Color.BLACK);
-	menuD.setLayout(new MenuLayout());
-	menuD.setBackground(Color.BLACK);
-	menuG.add(retour);
-	partie.add(menuG);
-	menuD.add(annuler);
-	partie.add(menuD);
-	partie.add(this.partie);
-	partie.setVisible(true);
-	return partie;
+    public void show(String card) {
+	cards.show(cardHolder, card);
     }
 
-    private JButton createButton(String nomEtAction) {
-	JButton button = new JButton(nomEtAction);
-	button.addActionListener(this);
-	button.setActionCommand(nomEtAction);
-	return button;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-	switch (e.getActionCommand()) {
-	case REPRENDRE_PARTIE:
-	    cards.show(cardHolder, PARTIE);
-	    break;
-	case NOUVELLE_PARTIE:
-	    if (this.debut.ouvrir(false)) {
-		partieMenu.repaint();
-		cards.show(cardHolder, PARTIE);
-	    }
-	    break;
-	case NOUVELLE_PARTIE_C_O:
-	    if (this.debut.ouvrir(true)) {
-		partieMenu.repaint();
-		cards.show(cardHolder, PARTIE);
-	    }
-	    break;
-	case CHARGER_PARTIE:
-	    break;
-	case QUITTER:
-	    System.exit(0);
-	    break;
-	case MENU:
-	    if (partie.isFinie()) {
-		this.cardHolder.remove(menu);
-		this.menu = this.createMenu();
-		this.cardHolder.add(menu, MENU);
-	    } else {
-		this.cardHolder.remove(menu);
-		this.menu = this.reprendreMenu();
-		this.cardHolder.add(menu, MENU);
-	    }
-	    cards.show(cardHolder, MENU);
-	    break;
-	case ANNULER:
-	    partie.annuler();
-	default:
-	    break;
+    public void nouvellePartie(boolean b) {
+	if (this.debut.ouvrir(b)) {
+	    cards.show(cardHolder, ChessGameActionListener.PARTIE);
 	}
     }
 

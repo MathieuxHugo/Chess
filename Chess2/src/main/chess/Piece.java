@@ -5,12 +5,12 @@ import java.util.LinkedList;
 public abstract class Piece {
 	private boolean blanc;
 	private boolean aBouge;
-	public static final String CAVALIER="Cavalier";
-	public static final String PION="Pion";
-	public static final String ROI="Roi";
-	public static final String REINE="Reine";
-	public static final String FOU="Fou";
-	public static final String TOUR="Tour";
+	public static final String CAVALIER="N";
+	public static final String PION="";
+	public static final String ROI="K";
+	public static final String REINE="Q";
+	public static final String FOU="B";
+	public static final String TOUR="R";
 	public Piece(boolean couleur)  {
 		this.blanc=couleur;
 		this.aBouge=false;

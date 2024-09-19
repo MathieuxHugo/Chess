@@ -307,8 +307,6 @@ public class Echiquier {
 		if (!c.isVide() && c.getPiece().isBlanc() == tour) {
 		    for (Object o : c.getAttaque().toArray()) {
 			destination = (Coordonnee) o;
-			// System.out.println(c.getPiece()+"->:"+destination+this.getCase(roiNoir).estMenaceePar(true,
-			// plateau));
 			coup = this.protege(tour, c.getCoordonnee(), destination);
 			if (coup != null) {
 			    this.coupsPossibles.add(coup);
@@ -556,12 +554,10 @@ public class Echiquier {
 	int compteur = 0;
 	for(Coup c : this.listCoupsJoues) {
 	    if(compteur%2 == 0) {
-		coups += (1+compteur/2)+".";
+		coups += (1+compteur/2)+". ";
 	    }
-	    else {
-		coups += "-";
-	    }
-	    coups+=c.toString();
+	    coups+=c.toString() + ",";
+	    compteur++;
 	}
 	return coups;
     }

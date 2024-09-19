@@ -11,6 +11,8 @@ public class PlateauLayout implements LayoutManager {
 	private boolean reversed;
 	private int hGap;
 	private int wGap;
+	private int margin;
+	
 	public PlateauLayout(int ligne, int colonne) {
 		this.ligne=ligne;
 		this.colonne=colonne;
@@ -50,20 +52,27 @@ public class PlateauLayout implements LayoutManager {
 	@Override
 	public void layoutContainer(Container parent) {
 		int i=0;
-		int w=parent.getWidth()/this.colonne,h=parent.getHeight()/this.ligne;
-		wGap=(parent.getWidth()%this.colonne);
-		hGap=(parent.getHeight()%this.ligne);
+		int size = parent.getHeight();
+		if(parent.getHeight()>parent.getWidth()) {
+		    size=parent.getWidth();
+		}
+
+		margin = size/40;
+		size=size-2*margin;
+		int w=size/this.colonne,h=size/this.ligne;
+		wGap=(size%this.colonne);
+		hGap=(size%this.ligne);
 		wGap=wGap/2+wGap%2;
 		hGap=hGap/2+hGap%2;
 		if(reversed) {
 			for(Component c : parent.getComponents()) {
-				c.setBounds(wGap+w*(this.colonne-(1+i%this.colonne)), hGap+h*(this.ligne-(1+i/this.ligne)), w, h);
+				c.setBounds(margin+wGap+w*(this.colonne-(1+i%this.colonne)), margin+hGap+h*(this.ligne-(1+i/this.ligne)), w, h);
 				i++;
 			}
 		}
 		else {
 			for(Component c : parent.getComponents()) {
-				c.setBounds(wGap+w*(i%this.colonne), hGap+h*(i/this.ligne), w, h);
+				c.setBounds(margin+wGap+w*(i%this.colonne), margin+hGap+h*(i/this.ligne), w, h);
 				i++;
 			}
 		}
@@ -86,5 +95,12 @@ public class PlateauLayout implements LayoutManager {
 		// TODO Auto-generated method stub
 
 	}
+
+	
+	public int getMargin() {
+	    return margin;
+	}
+	
+	
 
 }

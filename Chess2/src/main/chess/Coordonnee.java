@@ -21,7 +21,7 @@ public class Coordonnee implements Comparable{
 	}
 	@Override
 	public String toString() {
-		return "x="+x+",y="+y;
+		return String.valueOf((char) ('a'+ x ))+(8-y);
 	}
 	@Override
 	public int compareTo(Object o) {
@@ -48,4 +48,6 @@ public class Coordonnee implements Comparable{
 	public Coordonnee gauche() {
 		return new Coordonnee(this.x-1,this.y);
 	}
+	
+	
 }

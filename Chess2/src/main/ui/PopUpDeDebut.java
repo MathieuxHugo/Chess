@@ -153,8 +153,6 @@ public class PopUpDeDebut extends JDialog implements ItemListener, ActionListene
 	    this.setVisible(false);
 	    break;
 	case "OK":
-
-	    System.out.println("OK" + nomDePartieDisponible);
 	    String nomDePartie = this.name.getText();
 	    if (nomDePartieDisponible && nomDePartie != "") {
 		try {
@@ -168,7 +166,6 @@ public class PopUpDeDebut extends JDialog implements ItemListener, ActionListene
 		    JOptionPane.showMessageDialog(this, e1.getMessage());
 		    e1.printStackTrace();
 		}
-		System.out.println("True");
 		this.lancerPartie = true;
 		this.setVisible(false);
 	    }
@@ -195,7 +192,6 @@ public class PopUpDeDebut extends JDialog implements ItemListener, ActionListene
 
     private void nameChanged() {
 	String nomDePartie = this.name.getText();
-	System.out.println("name changed"+this.nomDesParties.size());
 	this.nomDePartieDisponible = !this.nomDesParties.contains(nomDePartie);
     }
 

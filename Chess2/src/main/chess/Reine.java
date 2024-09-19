@@ -97,7 +97,6 @@ public class Reine extends Piece {
 
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return REINE;
 	}
 

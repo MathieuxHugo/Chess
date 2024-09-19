@@ -66,7 +66,6 @@ public class Roi extends Piece {
 
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return ROI;
 	}
 

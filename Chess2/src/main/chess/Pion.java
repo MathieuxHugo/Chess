@@ -71,7 +71,6 @@ public class Pion extends Piece {
 	}
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return PION;
 	}
 	@Override

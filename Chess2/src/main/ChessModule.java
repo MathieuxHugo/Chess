@@ -5,6 +5,7 @@ import com.google.inject.AbstractModule;
 import main.DAO.PartieDAO;
 import main.factory.HibernateUtil;
 import main.service.PartieService;
+import main.ui.ChessGameActionListener;
 import main.ui.Partie;
 import main.ui.PopUpDeDebut;
 
@@ -20,6 +21,7 @@ public class ChessModule extends AbstractModule {
         bind(PartieDAO.class);
         bind(PartieService.class);
         bind(Partie.class).asEagerSingleton();
+        bind(ChessGameActionListener.class).asEagerSingleton();
         bind(JFrame.class).asEagerSingleton();
         bind(PopUpDeDebut.class);
     }

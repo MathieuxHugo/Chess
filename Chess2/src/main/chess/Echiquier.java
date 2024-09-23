@@ -64,6 +64,17 @@ public class Echiquier {
 	this.listCoupsJoues = (LinkedList<Coup>) listCoupsJoues.clone();
     }
 
+    private void initPlateau(String fen) {
+	int i;
+	for (char c : fen.toCharArray()) {
+	    if (c < 10) {
+		for (i = 0; i < c; i++) {
+		    // TODO
+		}
+	    }
+	}
+    }
+
     private void initPlateau() {
 	int i;
 	this.roiBlanc = new Coordonnee(4, 7);
@@ -542,6 +553,31 @@ public class Echiquier {
 	}
     }
 
+    public String getFEN() {
+	StringBuilder fen = new StringBuilder();
+	int i, j, empty = 0;
+	for (i = 0; i < taille; i++) {
+	    for (j = 0; j < taille; j++) {
+		Piece p = this.getPiece(j, i);
+		if (p == null) {
+		    empty++;
+		} else {
+		    if (empty != 0) {
+			fen.append(String.valueOf(empty));
+			empty = 0;
+		    }
+		    fen.append(p.fenCode());
+		}
+	    }
+	    if (empty != 0) {
+		fen.append(String.valueOf(empty));
+		empty = 0;
+	    }
+	    fen.append("/");
+	}
+	return fen.toString();
+    }
+
     @Override
     public Echiquier clone() {
 	return new Echiquier(this.plateau, this.roiNoir, this.roiBlanc, this.tour, this.cptTour, this.coupsPossibles,
@@ -552,11 +588,11 @@ public class Echiquier {
     public String toString() {
 	String coups = "";
 	int compteur = 0;
-	for(Coup c : this.listCoupsJoues) {
-	    if(compteur%2 == 0) {
-		coups += (1+compteur/2)+". ";
+	for (Coup c : this.listCoupsJoues) {
+	    if (compteur % 2 == 0) {
+		coups += (1 + compteur / 2) + ". ";
 	    }
-	    coups+=c.toString() + ",";
+	    coups += c.toString() + ",";
 	    compteur++;
 	}
 	return coups;

@@ -79,4 +79,8 @@ public class Roi extends Piece {
 		return 0;
 	}
 
+	@Override
+	public char fenCode() {
+	    return this.isBlanc() ? 'K' : 'k';
+	}
 }

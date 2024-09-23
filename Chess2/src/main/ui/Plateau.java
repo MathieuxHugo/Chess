@@ -22,7 +22,6 @@ import main.chess.Coup;
 import main.chess.Echiquier;
 import main.chess.Piece;
 import main.chess.Promotion;
-import main.chess.Promotion.Choix;
 
 public class Plateau extends JPanel {
 
@@ -83,6 +82,7 @@ public class Plateau extends JPanel {
 		temp.setDernierCoup(false);
 	    }
 	}
+	this.updateDernierCoup();
     }
 
     /*
@@ -296,27 +296,27 @@ public class Plateau extends JPanel {
     public void afficherChoixPromotion() {
 	Image icon[] = this.promotion.getpDepart().isBlanc() ? this.iconPiecesBlanches : this.iconPiecesNoires;
 	if (this.promotion.getArrivee().getX() == 0) {
-	    this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-	    this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Fou, icon[3]);
-	    this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Choix.Cavalier, icon[2]);
-	    this.getCase(this.promotion.getArrivee().droite().droite().droite()).setChoixIcon(Choix.Tour, icon[1]);
+	    this.getCase(this.promotion.getArrivee()).setChoixIcon(Piece.REINE, icon[4]);
+	    this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Piece.FOU, icon[3]);
+	    this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Piece.CAVALIER, icon[2]);
+	    this.getCase(this.promotion.getArrivee().droite().droite().droite()).setChoixIcon(Piece.TOUR, icon[1]);
 	} else {
 	    if (this.promotion.getArrivee().getX() == taille - 1) {
-		this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-		this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Fou, icon[3]);
-		this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Choix.Cavalier, icon[2]);
-		this.getCase(this.promotion.getArrivee().gauche().gauche().gauche()).setChoixIcon(Choix.Tour, icon[1]);
+		this.getCase(this.promotion.getArrivee()).setChoixIcon(Piece.REINE, icon[4]);
+		this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Piece.FOU, icon[3]);
+		this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Piece.CAVALIER, icon[2]);
+		this.getCase(this.promotion.getArrivee().gauche().gauche().gauche()).setChoixIcon(Piece.TOUR, icon[1]);
 	    } else {
 		if (this.promotion.getArrivee().getX() == taille - 2) {
-		    this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-		    this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Fou, icon[3]);
-		    this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Choix.Cavalier, icon[2]);
-		    this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Tour, icon[1]);
+		    this.getCase(this.promotion.getArrivee()).setChoixIcon(Piece.REINE, icon[4]);
+		    this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Piece.FOU, icon[3]);
+		    this.getCase(this.promotion.getArrivee().gauche().gauche()).setChoixIcon(Piece.CAVALIER, icon[2]);
+		    this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Piece.TOUR, icon[1]);
 		} else {
-		    this.getCase(this.promotion.getArrivee()).setChoixIcon(Choix.Reine, icon[4]);
-		    this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Choix.Fou, icon[3]);
-		    this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Choix.Cavalier, icon[2]);
-		    this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Choix.Tour, icon[1]);
+		    this.getCase(this.promotion.getArrivee()).setChoixIcon(Piece.REINE, icon[4]);
+		    this.getCase(this.promotion.getArrivee().droite()).setChoixIcon(Piece.FOU, icon[3]);
+		    this.getCase(this.promotion.getArrivee().droite().droite()).setChoixIcon(Piece.CAVALIER, icon[2]);
+		    this.getCase(this.promotion.getArrivee().gauche()).setChoixIcon(Piece.TOUR, icon[1]);
 		}
 	    }
 	}
@@ -333,6 +333,15 @@ public class Plateau extends JPanel {
 	int etatPartie = this.echiquier.joue(c);
 	return etatPartie;
     }
+    
+    public void updateDernierCoup() {
+	Coup dernier;
+	dernier = this.echiquier.getDernierCoup();
+	if (dernier != null) {
+	    this.getCase(dernier.getArrivee()).setDernierCoup(true);
+	    this.getCase(dernier.getDepart()).setDernierCoup(true);
+	}
+    }
 
     public void annuler() {
 	Coup dernier;
@@ -342,11 +351,7 @@ public class Plateau extends JPanel {
 	    this.getCase(dernier.getDepart()).setDernierCoup(false);
 	}
 	this.echiquier.annuler();
-	dernier = this.echiquier.getDernierCoup();
-	if (dernier != null) {
-	    this.getCase(dernier.getArrivee()).setDernierCoup(true);
-	    this.getCase(dernier.getDepart()).setDernierCoup(true);
-	}
+	this.updateDernierCoup();
 	for (Coup coup : this.coupsPossibles) {
 	    this.getCase(coup.getArrivee()).setSubrillance(false);
 	}

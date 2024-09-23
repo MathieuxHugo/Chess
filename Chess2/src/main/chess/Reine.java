@@ -109,6 +109,10 @@ public class Reine extends Piece {
 	public double valeurBerliner() {
 		return 8.8;
 	}
-	
+
+	@Override
+	public char fenCode() {
+	    return this.isBlanc() ? 'Q' : 'q';
+	}
 
 }

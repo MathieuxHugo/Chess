@@ -38,5 +38,29 @@ public abstract class Piece {
 	public abstract String toString();
 	public abstract int valeur();
 	public abstract double valeurBerliner();
+	public abstract char fenCode();
 	
+	public static Piece createPiece(char c) {
+	    boolean blanc = c<'a';
+	    if(blanc) {
+		c=+32;
+	    }
+	    switch(c) {
+		case 'p':
+		    return new Pion(blanc);
+		case 'r':
+		    return new Tour(blanc);
+		case 'n':
+		    return new Cavalier(blanc);
+		case 'b':
+		    return new Fou(blanc);
+		case 'q':
+		    return new Reine(blanc);
+		case 'K':
+		    return new Roi(blanc);
+		default: 
+		    return null;	    
+	    }
+		    
+	}
 }

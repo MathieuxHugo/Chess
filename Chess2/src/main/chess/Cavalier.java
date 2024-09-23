@@ -82,4 +82,10 @@ public class Cavalier extends Piece {
 	public double valeurBerliner() {
 		return 3.2;
 	}
+	
+
+	@Override
+	public char fenCode() {
+	    return this.isBlanc() ? 'N' : 'n';
+	}
 }

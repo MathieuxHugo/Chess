@@ -71,4 +71,9 @@ public class Tour extends Piece {
 		return 5.1;
 	}
 
+	@Override
+	public char fenCode() {
+	    return this.isBlanc() ? 'R' : 'r';
+	}
+
 }

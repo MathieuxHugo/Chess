@@ -31,6 +31,10 @@ public class ChessGameActionListener implements ActionListener {
 
     public static final String ANNULER = "Annuler";
     
+    public static final String REPRENDRE_PARTIE_CHARGER = "CHARGER_PARTIE";
+
+    public static final String SAUVEGARDER = "Sauvegarder";
+    
     private Partie partie;
     
     private JeuDEchec jeu;
@@ -48,9 +52,14 @@ public class ChessGameActionListener implements ActionListener {
 	    jeu.nouvellePartie(true);
 	    break;
 	case CHARGER_PARTIE:
+	    jeu.displayPartiePanel();
 	    break;
 	case QUITTER:
 	    System.exit(0);
+	    break;
+
+	case SAUVEGARDER:
+	    this.partie.sauvegarder();
 	    break;
 	case MENU:
 	    if (partie.isFinie()) {
@@ -58,9 +67,14 @@ public class ChessGameActionListener implements ActionListener {
 	    } else {
 		jeu.show(REPRENDRE_MENU);
 	    }
-	    break;  
+	    break;
+	case REPRENDRE_PARTIE_CHARGER:
+	    main.model.Partie partieCharger = (main.model.Partie) e.getSource();
+	    jeu.charger(partieCharger);
+	    break;
 	case ANNULER:
 	    partie.annuler();
+	    break;
 	default:
 	    break;
 	}

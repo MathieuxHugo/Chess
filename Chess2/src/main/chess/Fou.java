@@ -73,5 +73,9 @@ public class Fou extends Piece {
 	public double valeurBerliner() {
 		return 3.33;
 	}
+	@Override
+	public char fenCode() {
+	    return this.isBlanc()? 'B' : 'b';
+	}
 	
 }

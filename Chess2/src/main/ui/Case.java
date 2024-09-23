@@ -7,7 +7,6 @@ import java.awt.Image;
 import javax.swing.JComponent;
 
 import main.chess.Coordonnee;
-import main.chess.Promotion.Choix;
 
 public class Case extends JComponent {
 	private Image icon;
@@ -23,7 +22,7 @@ public class Case extends JComponent {
 	private static Color couleurDernierCoup = new Color(80, 120, 40);
 	private Image dragIcon;
 	private Image choixIcon;
-	private Choix choix;
+	private String choix;
 
 	public Case(Image icon, Coordonnee coordonnee) {
 		super();
@@ -51,7 +50,7 @@ public class Case extends JComponent {
 		this.choixIcon = null;
 	}
 
-	public void setChoixIcon(Choix choix, Image icon) {
+	public void setChoixIcon(String choix, Image icon) {
 		this.choix = choix;
 		this.choixIcon = icon;
 	}
@@ -60,7 +59,7 @@ public class Case extends JComponent {
 		return this.choix != null;
 	}
 
-	public Choix getChoix() {
+	public String getChoix() {
 		return this.choix;
 	}
 

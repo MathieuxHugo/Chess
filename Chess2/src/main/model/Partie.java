@@ -23,6 +23,40 @@ public class Partie {
     @Column(name = "computer")
     private String computer;
     
+    @Column(name = "finie")
+    private boolean finie;
+    
+    @Column(name = "fen")
+    private String fen;
+    
+    
+    
+    public Partie() {
+	this.finie = false;
+    }
+
+
+
+    public String getFen() {
+        return fen;
+    }
+
+
+    
+    public void setFen(String fen) {
+        this.fen = fen;
+    }
+
+
+    public boolean isFinie() {
+        return finie;
+    }
+
+    
+    public void setFinie(boolean finie) {
+        this.finie = finie;
+    }
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)

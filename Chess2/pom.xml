@@ -20,11 +20,11 @@
 	    <artifactId>hibernate-entitymanager</artifactId>
 	    <version>5.6.0.Final</version>
 	</dependency>
-	<dependency>
-	    <groupId>com.h2database</groupId>
-	    <artifactId>h2</artifactId> <!-- or use another DB like MySQL or PostgreSQL -->
-	    <version>1.4.200</version>
-	</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.200</version>
+		</dependency>
 	<dependency>
 	    <groupId>com.google.inject</groupId>
 	    <artifactId>guice</artifactId>

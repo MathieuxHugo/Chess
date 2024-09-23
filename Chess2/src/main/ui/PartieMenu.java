@@ -11,9 +11,10 @@ public class PartieMenu extends JPanel {
 
     public PartieMenu(ChessGameActionListener listener) {
 	this.setBackground(Color.DARK_GRAY);
-	this.setLayout(new GridLayout(1,2));
+	this.setLayout(new GridLayout(3,1));
 	this.add(listener.createButton(ChessGameActionListener.ANNULER));
 	this.add(listener.createButton(ChessGameActionListener.MENU));
+	this.add(listener.createButton(ChessGameActionListener.SAUVEGARDER));
     }
     
 }

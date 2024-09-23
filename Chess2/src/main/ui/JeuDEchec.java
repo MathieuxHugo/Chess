@@ -14,7 +14,7 @@ import javax.swing.JPanel;
 
 import com.google.inject.Inject;
 
-public class JeuDEchec {
+public class JeuDEchec implements Runnable{
 
     private CardLayout cards;
 
@@ -29,9 +29,11 @@ public class JeuDEchec {
     private Partie partie;
 
     private ChessGameActionListener chessGameActionListener;
+    
+    private PartiePanel partiePanel;
 
     @Inject
-    public JeuDEchec(Partie partie, JFrame fenetre, PopUpDeDebut popUpDeDebut, ChessGameActionListener chessGameActionListener) {
+    public JeuDEchec(Partie partie, JFrame fenetre, PopUpDeDebut popUpDeDebut, ChessGameActionListener chessGameActionListener, PartiePanel partiePanel) {
 	this.debut = popUpDeDebut;
 	this.partie = partie;
 	this.chessGameActionListener = chessGameActionListener;
@@ -49,6 +51,8 @@ public class JeuDEchec {
 	cardHolder.add(menu, ChessGameActionListener.MENU);
 	cardHolder.add(this.reprendreMenu(), ChessGameActionListener.REPRENDRE_MENU);
 	cardHolder.add(partie, ChessGameActionListener.PARTIE);
+	this.partiePanel = partiePanel;
+	cardHolder.add(partiePanel, ChessGameActionListener.CHARGER_PARTIE);
 	cards.first(cardHolder);
     }
 
@@ -89,6 +93,28 @@ public class JeuDEchec {
 	if (this.debut.ouvrir(b)) {
 	    cards.show(cardHolder, ChessGameActionListener.PARTIE);
 	}
+    }
+
+    public void charger(main.model.Partie partieCharger) {
+	try {
+	    this.partie.chargerPartie(partieCharger);
+
+	} catch (FileNotFoundException e1) {
+	    //JOptionPane.showMessageDialog(this, e1.getMessage());
+	    e1.printStackTrace();
+	}
+	this.show(ChessGameActionListener.PARTIE);
+    }
+
+    public void displayPartiePanel() {
+	this.partiePanel.refreshParties();
+	this.show(ChessGameActionListener.CHARGER_PARTIE);
+    }
+
+    @Override
+    public void run() {
+	// TODO Auto-generated method stub
+	
     }
 
 }

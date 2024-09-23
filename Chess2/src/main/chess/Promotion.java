@@ -2,9 +2,6 @@ package main.chess;
 
 public class Promotion extends Coup {
 	private Piece promo;
-	public static enum Choix{
-		Reine,Tour,Fou,Cavalier;
-	}
 	protected Promotion(Coordonnee depart, Coordonnee arrivee, Pion p, Piece prise) {
 		super(depart, arrivee, p, prise);
 		// TODO Auto-generated constructor stub
@@ -14,24 +11,26 @@ public class Promotion extends Coup {
 		this.promo=prom.clone();
 		// TODO Auto-generated constructor stub
 	}
-	public void choixPromo(Choix choix) {
+	public void choixPromo(String choix) {
 		switch(choix) {
-		case Cavalier:
+		case Piece.CAVALIER:
 			this.promo=new Cavalier(this.getpDepart().isBlanc());
 			break;
-		case Fou:
+		case Piece.FOU:
 			this.promo=new Fou(this.getpDepart().isBlanc());
 			break;
-		case Reine:
+		case Piece.REINE:
 			this.promo=new Reine(this.getpDepart().isBlanc());
 			break;
-		case Tour:
+		case Piece.TOUR:
 			this.promo=new Tour(this.getpDepart().isBlanc());
 			break;
 		default:
 			break;
 		}
 	}
+	
+	
 	public Piece getPromo() {
 		return promo;
 	}
@@ -40,5 +39,11 @@ public class Promotion extends Coup {
 	public Promotion clone() {
 		return new Promotion(this.getDepart(),this.getArrivee(),this.getpDepart(),this.getPrise(),this.getPromo());
 	}
+	@Override
+	public String toString() {
+	    return super.toString()+"="+this.promo.toString();
+	}
+	
+	
 
 }

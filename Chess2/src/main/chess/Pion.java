@@ -81,6 +81,10 @@ public class Pion extends Piece {
 	public double valeurBerliner() {
 		return 1;
 	}
+	@Override
+	public char fenCode() {
+	    return this.isBlanc() ? 'P' : 'p';
+	}
 
 	
 

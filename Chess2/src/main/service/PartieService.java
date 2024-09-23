@@ -20,6 +20,10 @@ public class PartieService {
 	    return partieDAO.getAllNames();
 	}
 	
+	public List<Partie> getAllParties(){
+	    return partieDAO.findAll();
+	}
+	
 	public boolean save(String name, String computer, String coups) {
 	    Partie partie = new Partie();
 	    partie.setComputer(computer);

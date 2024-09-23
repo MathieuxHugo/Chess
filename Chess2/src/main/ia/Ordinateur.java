@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 import main.chess.Coup;
 import main.chess.Echiquier;
+import main.chess.Piece;
 import main.chess.Promotion;
 
 public class Ordinateur {
@@ -67,13 +68,13 @@ public class Ordinateur {
 		listeCoups.forEach(c -> {
 			if (c instanceof Promotion) {
 				Promotion temp = (Promotion) c;
-				temp.choixPromo(Promotion.Choix.Reine);
+				temp.choixPromo(Piece.REINE);
 				listePromo.add(temp.clone());
-				temp.choixPromo(Promotion.Choix.Fou);
+				temp.choixPromo(Piece.FOU);
 				listePromo.add(temp.clone());
-				temp.choixPromo(Promotion.Choix.Tour);
+				temp.choixPromo(Piece.TOUR);
 				listePromo.add(temp.clone());
-				temp.choixPromo(Promotion.Choix.Cavalier);
+				temp.choixPromo(Piece.CAVALIER);
 			}
 		});
 		listePromo.forEach(c -> listeCoups.add(c));

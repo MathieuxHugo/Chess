@@ -5,6 +5,9 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -25,11 +28,10 @@ import main.chess.Coup;
 import main.chess.Echiquier;
 import main.chess.Piece;
 import main.chess.Promotion;
-import main.chess.Promotion.Choix;
 import main.ia.Ordinateur;
 import main.service.PartieService;
 
-public final class Partie extends JPanel implements Runnable {
+public final class Partie extends JPanel implements Runnable, ComponentListener {
 
     private Plateau plateau;
 
@@ -58,9 +60,9 @@ public final class Partie extends JPanel implements Runnable {
     private PartieService partieService;
 
     private main.model.Partie partie;
-    
+
     private MovesDisplayer movesDisplayer;
-    
+
     @Inject
     public Partie(PartieService partieService, ChessGameActionListener chessGameActionListener) {
 	this.partieService = partieService;
@@ -72,8 +74,10 @@ public final class Partie extends JPanel implements Runnable {
 	this.add(this.plateau);
 	chessGameActionListener.setPartie(this);
 	this.add(new PartieMenu(chessGameActionListener));
-	
 	this.setOpaque(true);
+	addComponentListener(this);
+	this.name = null;
+	this.finie=true;
     }
 
     public void nouvellePartie(String name) throws FileNotFoundException {
@@ -95,11 +99,37 @@ public final class Partie extends JPanel implements Runnable {
 	}
 	this.plateau.setEnAttente(false);
     }
-    
+
+    public void chargerPartie(main.model.Partie partie) throws FileNotFoundException {
+	this.name = partie.getName();
+	this.finie = partie.isFinie();
+	Echiquier echiquier = new Echiquier();
+	if (partie.getCoups() != "") {
+	    for (String coup : partie.getCoups().split(",")) {
+		String coordonnees = coup.replaceAll("[0-9]*\\.", "").replaceAll("[^a-h1-8]", "");
+		Coordonnee depart = new Coordonnee(coordonnees.substring(0, 2));
+		Coordonnee arrivee = new Coordonnee(coordonnees.substring(2));
+		for (Coup c : echiquier.selectionne(depart)) {
+		    System.out.println(c.getArrivee().equals(arrivee) + c.toString());
+		    if (c.getArrivee().equals(arrivee)) {
+			if (c instanceof Promotion) {
+			    Promotion p = (Promotion) c;
+			    p.choixPromo("" + coup.charAt(coup.length()));
+			}
+			echiquier.joue(c);
+		    }
+		}
+	    }
+	}
+
+	this.plateau.initPlateau(echiquier);
+	this.movesDisplayer.update(this.plateau.getEchiquier().toString());
+    }
+
     public boolean isFinie() {
 	return finie;
     }
-    
+
     private void joueOrdinateur() {
 
 	this.plateau.setEnAttente(true);
@@ -129,11 +159,14 @@ public final class Partie extends JPanel implements Runnable {
     }
 
     public void sauvegarder() {
-	String computer = "None";
-	if(this.ordinateur!=null) {
-	    computer = this.ordinateur.isCouleur()?"White":"Black" + this.ordinateur.getNiveau();
+
+	if (name != null) {
+	    String computer = "None";
+	    if (this.ordinateur != null) {
+		computer = this.ordinateur.isCouleur() ? "White" : "Black" + this.ordinateur.getNiveau();
+	    }
+	    this.partieService.save(this.name, computer, this.plateau.getEchiquier().toString());
 	}
-	this.partieService.save(this.name, computer, this.plateau.getEchiquier().toString());
     }
 
     public void finPartie(int finDePartie) {
@@ -169,11 +202,34 @@ public final class Partie extends JPanel implements Runnable {
 	}
     }
 
-    
-
     @Override
     public void run() {
 	this.joueOrdinateur();
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+	// TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+	// TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+	// TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+	System.out.println("SAVEEE");
+	if (this.name != null)
+	    this.sauvegarder();
     }
 
 }

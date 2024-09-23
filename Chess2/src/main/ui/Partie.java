@@ -110,7 +110,6 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
 		Coordonnee depart = new Coordonnee(coordonnees.substring(0, 2));
 		Coordonnee arrivee = new Coordonnee(coordonnees.substring(2));
 		for (Coup c : echiquier.selectionne(depart)) {
-		    System.out.println(c.getArrivee().equals(arrivee) + c.toString());
 		    if (c.getArrivee().equals(arrivee)) {
 			if (c instanceof Promotion) {
 			    Promotion p = (Promotion) c;
@@ -161,11 +160,11 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
     public void sauvegarder() {
 
 	if (name != null) {
-	    String computer = "None";
+	    String computer = "Joueur contre joueur";
 	    if (this.ordinateur != null) {
-		computer = this.ordinateur.isCouleur() ? "White" : "Black" + this.ordinateur.getNiveau();
+		computer = this.ordinateur.isCouleur() ? "Ordinateur Blanc " : "Ordinateur Noir " + this.ordinateur.getNiveau();
 	    }
-	    this.partieService.save(this.name, computer, this.plateau.getEchiquier().toString());
+	    this.partieService.save(this.name, computer, this.plateau.getEchiquier().toString(), this.isFinie());
 	}
     }
 
@@ -227,7 +226,6 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
 
     @Override
     public void componentHidden(ComponentEvent e) {
-	System.out.println("SAVEEE");
 	if (this.name != null)
 	    this.sauvegarder();
     }

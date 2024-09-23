@@ -37,6 +37,24 @@ public class PartieDAO {
 	    session.close();
 	}
     }
+    
+    public boolean delete(Partie partie) {
+	Session session = sessionFactory.openSession();
+	Transaction tx = null;
+	try {
+	    tx = session.beginTransaction();
+	    session.delete(partie);
+	    tx.commit();
+	    return true;
+	} catch (HibernateException e) {
+	    if (tx != null)
+		tx.rollback();
+	    e.printStackTrace();
+	    return false;
+	} finally {
+	    session.close();
+	}
+    }
 
     public Partie findById(Long id) {
 	Session session = sessionFactory.openSession();

@@ -546,3 +546,9 @@ Caused by: java.nio.channels.OverlappingFileLockException
 	at java.base/java.nio.channels.FileChannel.tryLock(FileChannel.java:1360)
 	at org.h2.mvstore.FileStore.open(FileStore.java:163)
 	... 58 more
+2024-09-23 17:59:49 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "COUPS VARCHAR(255)": "'1. d2d4,d7d5,2. Nb1c3,Ng8f6,3. h2h4,h7h5,4. Rh1h3,Rh8h6,5. Bc1xh6,g7xh6,6. Rh3h2,Bc8h3,7. Rh2xh3,c7c5,8. e2e3,Qd8a5,9. a2a3,Qa5... (287)"; SQL statement:
+update Partie set computer=?, coups=?, fen=?, finie=? where name=? [22001-200]
+2024-09-23 20:14:03 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "COUPS VARCHAR(255)": "'1. e2e3,e7e5,2. e3e4,d7d5,3. Ng1e2,d5xe4,4. Nb1a3,c7c5,5. Ne2g3,f7f5,6. Qd1h5,g7g6,7. Bf1a6,Nb8xa6,8. c2c3,g6xh5,9. Ng3xe4,f5xe... (265)"; SQL statement:
+update Partie set computer=?, coups=?, fen=?, finie=? where name=? [22001-200]

@@ -24,13 +24,18 @@ public class PartieService {
 	    return partieDAO.findAll();
 	}
 	
-	public boolean save(String name, String computer, String coups) {
+	public boolean save(String name, String computer, String coups, boolean finie) {
 	    Partie partie = new Partie();
 	    partie.setComputer(computer);
 	    partie.setCoups(coups);
 	    partie.setName(name);
+	    partie.setFinie(finie);
 	    
 	    return partieDAO.save(partie);
+	}
+	
+	public void delete(Partie partie) {
+	    partieDAO.delete(partie);
 	}
 
 

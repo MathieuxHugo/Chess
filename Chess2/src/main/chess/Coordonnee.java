@@ -12,7 +12,6 @@ public class Coordonnee implements Comparable {
     }
 
     public Coordonnee(String coord) {
-	System.out.println(coord);
 	this.x = coord.charAt(0) - 'a';
 	this.y = 8 + '0' - coord.charAt(1);
     }

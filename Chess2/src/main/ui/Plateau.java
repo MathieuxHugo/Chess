@@ -41,8 +41,6 @@ public class Plateau extends JPanel {
 
     private Image[] iconPiecesNoires;
 
-    private Image sablier;
-
     private Echiquier echiquier;
 
     private Promotion promotion;
@@ -236,19 +234,6 @@ public class Plateau extends JPanel {
 		}
 	    }
 	}
-	imageURL = new File(JeuDEchec.cheminIcons + "sablier.png");
-	if (!imageURL.exists()) {
-	    System.err.println("Resource not found: " + JeuDEchec.cheminIcons + "sablier.png");
-	    throw new FileNotFoundException("Icone du sablier : " + JeuDEchec.cheminIcons + "sablier.png non trouv�e.");
-	} else {
-	    try {
-		imgIcon = new ImageIcon(imageURL.toURI().toURL(), "Sablier");
-		this.sablier = imgIcon.getImage();
-	    } catch (MalformedURLException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	    }
-	}
     }
 
     @Override
@@ -276,12 +261,6 @@ public class Plateau extends JPanel {
 		g.drawString(String.valueOf(taille - i), 0+margin/4,margin+i*tailleCase+tailleCase/2);
 		g.drawString(String.valueOf(taille - i), this.getWidth()-3*margin/4,margin+i*tailleCase+tailleCase);
 	    }
-	}
-	if (this.enAttente) {
-	    g.drawImage(this.sablier, 0, 0, gap, gap, this);
-	    g.drawImage(this.sablier, this.getWidth() - gap, 0, gap, gap, this);
-	    g.drawImage(this.sablier, 0, this.getHeight() - gap, gap, gap, this);
-	    g.drawImage(this.sablier, this.getWidth() - gap, this.getHeight() - gap, gap, gap, this);
 	}
     }
 
@@ -464,11 +443,10 @@ public class Plateau extends JPanel {
 		    this.promotion = null;
 		}
 		this.coupsPossibles = this.echiquier.selectionne(c.getCoordonnee());
-		if (!this.coupsPossibles.isEmpty()) {
-		    for (Coup coup : this.coupsPossibles) {
-			this.getCase(coup.getArrivee()).setSubrillance(true);
-		    }
+		for (Coup coup : this.coupsPossibles) {
+		    this.getCase(coup.getArrivee()).setSubrillance(true);
 		}
+		
 	    }
 	}
 	this.updatePlateau();

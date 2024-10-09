@@ -62,6 +62,8 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
     private main.model.Partie partie;
 
     private MovesDisplayer movesDisplayer;
+    
+    private PartieMenu menu;
 
     @Inject
     public Partie(PartieService partieService, ChessGameActionListener chessGameActionListener) {
@@ -73,11 +75,12 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
 	this.add(movesDisplayer);
 	this.add(this.plateau);
 	chessGameActionListener.setPartie(this);
-	this.add(new PartieMenu(chessGameActionListener));
+	this.menu = new PartieMenu(chessGameActionListener);
+	this.add(menu);
 	this.setOpaque(true);
 	addComponentListener(this);
 	this.name = null;
-	this.finie=true;
+	this.finie = true;
     }
 
     public void nouvellePartie(String name) throws FileNotFoundException {
@@ -88,10 +91,13 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
 	this.ordinateur = null;
 	this.partie = new main.model.Partie();
 	this.partie.setName(name);
+
+	this.menu.setComputer(false);
     }
 
     public void nouvellePartie(int niveau, boolean couleurOrdinateur, String name) throws FileNotFoundException {
 	this.nouvellePartie(name);
+	this.menu.setComputer(true);
 	this.ordinateur = new Ordinateur(niveau, couleurOrdinateur, this.plateau.getEchiquier(), true);
 	if (couleurOrdinateur) {
 	    Thread tourOrdinateur = new Thread(this);
@@ -103,28 +109,31 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
     public void chargerPartie(main.model.Partie partie) throws FileNotFoundException {
 	this.name = partie.getName();
 	this.finie = partie.isFinie();
-	Echiquier echiquier = new Echiquier();
-	if (partie.getCoups() != "") {
-	    for (String coup : partie.getCoups().split(",")) {
-		String coordonnees = coup.replaceAll("[0-9]*\\.", "").replaceAll("[^a-h1-8]", "");
-		Coordonnee depart = new Coordonnee(coordonnees.substring(0, 2));
-		Coordonnee arrivee = new Coordonnee(coordonnees.substring(2));
-		for (Coup c : echiquier.selectionne(depart)) {
-		    if (c.getArrivee().equals(arrivee)) {
-			if (c instanceof Promotion) {
-			    Promotion p = (Promotion) c;
-			    p.choixPromo("" + coup.charAt(coup.length()));
-			}
-			echiquier.joue(c);
-		    }
-		}
+	int finDePartie = Echiquier.PARTIE_CONTINUE;
+	Echiquier echiquier = new Echiquier(partie.getFen());
+	
+	if (!partie.getComputer().equals("Joueur contre joueur")) {
+	    int niveau = Integer.parseInt("" + partie.getComputer().charAt(partie.getComputer().length() - 1));
+	    boolean couleurOrdinateur = false;
+	    if (partie.getComputer().contains("Blanc")) {
+		couleurOrdinateur = true;
 	    }
+	    this.menu.setComputer(true);
+	    this.ordinateur = new Ordinateur(niveau, couleurOrdinateur, echiquier, true);
+	} else {
+	    this.menu.setComputer(false);
+	    this.ordinateur = null;
 	}
 
 	this.plateau.initPlateau(echiquier);
 	this.movesDisplayer.update(this.plateau.getEchiquier().toString());
+	this.finPartie(finDePartie);
     }
 
+    public void displayGraph() {
+	this.ordinateur.displayGraph();
+    }
+    
     public boolean isFinie() {
 	return finie;
     }
@@ -162,9 +171,10 @@ public final class Partie extends JPanel implements Runnable, ComponentListener 
 	if (name != null) {
 	    String computer = "Joueur contre joueur";
 	    if (this.ordinateur != null) {
-		computer = this.ordinateur.isCouleur() ? "Ordinateur Blanc " : "Ordinateur Noir " + this.ordinateur.getNiveau();
+		computer = this.ordinateur.isCouleur() ? "Ordinateur Blanc "
+			: "Ordinateur Noir " + this.ordinateur.getNiveau();
 	    }
-	    this.partieService.save(this.name, computer, this.plateau.getEchiquier().toString(), this.isFinie());
+	    this.partieService.save(this.name, computer, this.isFinie(), this.plateau.getEchiquier().getFEN());
 	}
     }
 

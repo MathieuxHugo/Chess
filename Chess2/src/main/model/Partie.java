@@ -17,9 +17,6 @@ public class Partie {
     @Id
     private String name;
 
-    @Column(name = "coups")
-    private String coups;
-
     @Column(name = "computer")
     private String computer;
     
@@ -68,14 +65,6 @@ public class Partie {
 
     public void setName(String name) {
 	this.name = name;
-    }
-
-    public String getCoups() {
-	return coups;
-    }
-
-    public void setCoups(String coups) {
-	this.coups = coups;
     }
     
     public String getComputer() {

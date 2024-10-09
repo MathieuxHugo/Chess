@@ -14,7 +14,7 @@ import javax.swing.JPanel;
 
 import com.google.inject.Inject;
 
-public class JeuDEchec implements Runnable{
+public class JeuDEchec {
 
     private CardLayout cards;
 
@@ -30,10 +30,10 @@ public class JeuDEchec implements Runnable{
 
     private ChessGameActionListener chessGameActionListener;
     
-    private PartiePanel partiePanel;
+    private LoadPanel partiePanel;
 
     @Inject
-    public JeuDEchec(Partie partie, JFrame fenetre, PopUpDeDebut popUpDeDebut, ChessGameActionListener chessGameActionListener, PartiePanel partiePanel) {
+    public JeuDEchec(Partie partie, JFrame fenetre, PopUpDeDebut popUpDeDebut, ChessGameActionListener chessGameActionListener, LoadPanel partiePanel) {
 	this.debut = popUpDeDebut;
 	this.partie = partie;
 	this.chessGameActionListener = chessGameActionListener;
@@ -111,10 +111,5 @@ public class JeuDEchec implements Runnable{
 	this.show(ChessGameActionListener.CHARGER_PARTIE);
     }
 
-    @Override
-    public void run() {
-	// TODO Auto-generated method stub
-	
-    }
 
 }

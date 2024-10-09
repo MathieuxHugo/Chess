@@ -34,6 +34,8 @@ public class ChessGameActionListener implements ActionListener {
     public static final String REPRENDRE_PARTIE_CHARGER = "CHARGER_PARTIE";
 
     public static final String SAUVEGARDER = "Sauvegarder";
+
+    public static final String DISPLAY_GRAPH = "DISPLAY_GRAPH";
     
     private Partie partie;
     
@@ -74,6 +76,9 @@ public class ChessGameActionListener implements ActionListener {
 	    break;
 	case ANNULER:
 	    partie.annuler();
+	    break;
+	case DISPLAY_GRAPH:
+	    partie.displayGraph();
 	    break;
 	default:
 	    break;

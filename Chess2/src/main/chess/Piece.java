@@ -31,7 +31,14 @@ public abstract class Piece {
 	public void setaBouge(boolean aBouge) {
 		this.aBouge = aBouge;
 	}
-	public abstract LinkedList<Coordonnee> coupPossible(final int x,final int y,final Case[][] plateau);//ajoute toute les cases ou la piece peut se d�placer et inclut les cases ou il y a une piece de la m�me couleur que la piece qu'on souhaite d�placer
+	/** Ajoute toute les cases ou la piece peut se d�placer et inclut les cases ou il y a une piece de la m�me couleur que la piece qu'on souhaite d�placer
+	 * 
+	 * @param x Coordinate of the piece on the board.
+	 * @param y Coordinate of the piece on the board.
+	 * @param plateau board.
+	 * @return
+	 */
+	public abstract LinkedList<Coordonnee> coupPossible(final int x,final int y,final Case[][] plateau);//
 	
 	public abstract Piece clone();
 	@Override
@@ -43,7 +50,7 @@ public abstract class Piece {
 	public static Piece createPiece(char c) {
 	    boolean blanc = c<'a';
 	    if(blanc) {
-		c=+32;
+		c+=32;
 	    }
 	    switch(c) {
 		case 'p':
@@ -56,7 +63,7 @@ public abstract class Piece {
 		    return new Fou(blanc);
 		case 'q':
 		    return new Reine(blanc);
-		case 'K':
+		case 'k':
 		    return new Roi(blanc);
 		default: 
 		    return null;	    

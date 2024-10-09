@@ -53,7 +53,7 @@ public class Roi extends Piece {
 		if(xTemp<Echiquier.taille) {
 			retour.add(new Coordonnee(xTemp,yTemp));
 		}
-		if(!this.isaBouge()) {
+		if(!this.isaBouge() && x==4) {
 			retour.add(new Coordonnee(x-2,y));
 			retour.add(new Coordonnee(x+2,y));
 		}

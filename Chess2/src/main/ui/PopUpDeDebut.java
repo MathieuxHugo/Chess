@@ -63,6 +63,7 @@ public class PopUpDeDebut extends JDialog implements ItemListener, ActionListene
 	this.setContentPane(this.createPanel());
 	this.bouN = true;
 	this.lancerPartie = false;
+	this.niveau=1;
     }
 
     private JPanel createPanel() {
@@ -126,7 +127,7 @@ public class PopUpDeDebut extends JDialog implements ItemListener, ActionListene
 	switch ((String) e.getItem()) {
 	case "Facile":
 	    this.profondeur.setVisible(false);
-	    this.niveau = 2;
+	    this.niveau = 1;
 	    break;
 	case "Moyen":
 	    this.profondeur.setVisible(false);

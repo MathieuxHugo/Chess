@@ -11,7 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-public class PartiePanel extends JPanel {
+public class LoadPanel extends JPanel {
 
     private PartieService partieService;
 
@@ -28,7 +28,7 @@ public class PartiePanel extends JPanel {
     // Constructor where Guice will inject the PartieService and
     // ChessGameActionListener
     @Inject
-    public PartiePanel(PartieService partieService, ChessGameActionListener chessGameActionListener) {
+    public LoadPanel(PartieService partieService, ChessGameActionListener chessGameActionListener) {
 	this.partieService = partieService;
 	this.chessGameActionListener = chessGameActionListener;
 	this.font = new Font("Serif", Font.BOLD, 24);
@@ -61,7 +61,7 @@ public class PartiePanel extends JPanel {
 	List<Partie> parties = partieService.getAllParties();
 	JPanel title = new JPanel();
 	title.add(this.createJLabel("Nom"));
-	title.add(this.createJLabel("Nomber de coups"));
+	title.add(this.createJLabel("Tour des"));
 	title.add(this.createJLabel("Type de partie"));
 	title.add(this.createJLabel("Partie finie"));
 	title.add(this.createJLabel(""));
@@ -86,7 +86,7 @@ public class PartiePanel extends JPanel {
 	partieRow.setLayout(gridLayout); 
 
 	JLabel nameLabel = this.createJLabel(partie.getName());
-	JLabel movesLabel = this.createJLabel(String.valueOf(partie.getCoups().split(",").length / 2));
+	JLabel movesLabel = this.createJLabel(partie.getFen().contains("w")?"Blanc":"Noir");
 	JLabel gameType = this.createJLabel(partie.getComputer());
 	JLabel gameOver = this.createJLabel(partie.isFinie()?"Oui":"Non");
 	

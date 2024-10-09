@@ -32,8 +32,7 @@ public class GameLogicListener implements MouseListener, MouseMotionListener{
     
     @Override
     public void mouseClicked(MouseEvent e) {
-	// TODO Auto-generated method stub
-	
+	return;
     }
 
     @Override
@@ -62,7 +61,6 @@ public class GameLogicListener implements MouseListener, MouseMotionListener{
 	int dy = Math.abs(e.getY() - this.firstMouseEvent.getY());
 	int t, x, y;
 	Case c = (Case) this.firstMouseEvent.getSource();
-	Component compo;
 	Image icon;
 	if ((dx > 5 || dy > 5) && !this.plateau.isEnAttente()) {
 	    this.plateau.freeIcons();

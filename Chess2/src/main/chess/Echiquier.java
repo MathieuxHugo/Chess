@@ -31,7 +31,6 @@ public class Echiquier {
     public static final int PARTIE_CONTINUE = 0;
 
     public Echiquier() {
-	super();
 	this.plateau = new Case[taille][taille];
 	this.tour = true;
 	this.cptTour = 0;
@@ -54,7 +53,6 @@ public class Echiquier {
 
     private Echiquier(Case[][] plateau, Coordonnee roiNoir, Coordonnee roiBlanc, boolean tour, int cptTour,
 	    LinkedList<Coup> coupsPossibles, LinkedList<Coup> listCoupsJoues) {
-	super();
 	this.plateau = copier(plateau);
 	this.roiNoir = roiNoir;
 	this.roiBlanc = roiBlanc;
@@ -63,16 +61,97 @@ public class Echiquier {
 	this.coupsPossibles = (LinkedList<Coup>) coupsPossibles.clone();
 	this.listCoupsJoues = (LinkedList<Coup>) listCoupsJoues.clone();
     }
+    
+    public Echiquier(String fen) {
+	this.plateau = new Case[taille][taille];
+	this.cptTour = 0;
+	this.listCoupsJoues = new LinkedList<Coup>();
+	this.initPlateau(fen);
+	this.updateCoupsPossibles();
+    }
+    
+    
+
+    
+    public void setCoupsPossibles(String coups) {
+//	for (String coup : coups.split(",")) {
+//	    String coordonnees = coup.replaceAll("[0-9]*\\.", "").replaceAll("[^a-h1-8]", "");
+//	    Coordonnee depart = new Coordonnee(coordonnees.substring(0, 2));
+//	    Coordonnee arrivee = new Coordonnee(coordonnees.substring(2));
+//	    for (Coup c : this.selectionne(depart)) {
+//		if (c.getArrivee().equals(arrivee)) {
+//		    if (c instanceof Promotion) {
+//			Promotion p = (Promotion) c;
+//			p.choixPromo("" + coup.charAt(coup.length()));
+//		    }
+//		    finDePartie = echiquier.joue(c);
+//		}
+//	    }
+//	}
+	//TODO adapt code
+    }
 
     private void initPlateau(String fen) {
-	int i;
-	for (char c : fen.toCharArray()) {
-	    if (c < 10) {
-		for (i = 0; i < c; i++) {
-		    // TODO
+	for (int i = 0; i < taille * taille; i++) {
+	    this.plateau[i % taille][i / taille] = new Case(null, new Coordonnee(i % taille, i / taille));
+	}
+	int i, posInColumn = 0;
+	String fentab[] = fen.split(" ");
+	String position = fentab[0];
+	// Set up the position
+	for (String row : position.split("/")) {
+	    int posInRow = 0;
+	    for (char c : row.toCharArray()) {
+		if ('1' <= c && c < '9') {
+		    for (i = 0; i < c - '0'; i++) {
+			this.setCase(new Coordonnee(posInRow, posInColumn), null);
+			posInRow++;
+		    }
+		} else {
+		    Coordonnee coordonnee = new Coordonnee(posInRow, posInColumn);
+		    if (c == 'K') {
+			this.roiBlanc = coordonnee;
+		    } else {
+			if (c == 'k') {
+			    this.roiNoir = coordonnee;
+			}
+		    }
+		    this.setCase(coordonnee, Piece.createPiece(c));
+		    posInRow++;
 		}
 	    }
+	    posInColumn++;
 	}
+	
+	this.tour = fentab[1].equals("w");
+
+	// Set possible roques from fen
+	if (!fentab[2].contains("K") && this.getPiece(new Coordonnee("h1"))!=null) {
+	    this.getPiece(new Coordonnee("h1")).setaBouge(true);
+	}
+	if (!fentab[2].contains("Q") && null!=this.getPiece(new Coordonnee("a1"))) {
+	    this.getPiece(new Coordonnee("a1")).setaBouge(true);
+	}
+
+	if (!fentab[3].contains("k") && null!=this.getPiece(new Coordonnee("h8"))) {
+	    this.getPiece(new Coordonnee("h8")).setaBouge(true);
+	}
+	if (!fentab[3].contains("q") && null!=this.getPiece(new Coordonnee("a8"))) {
+	    this.getPiece(new Coordonnee("a8")).setaBouge(true);
+	}
+
+	// Set en passant if possible
+	if (!fentab[4].contains("-")) {
+	    Coordonnee enpassant = new Coordonnee(fentab[4]);
+	    if (enpassant.getY() == 2) {
+		Pion pion = (Pion) this.getPiece(enpassant.getX(), 3);
+		pion.setEnPassant(-1);
+	    } else {
+		Pion pion = (Pion) this.getPiece(enpassant.getX(), 4);
+		pion.setEnPassant(-1);
+	    }
+	}
+
     }
 
     private void initPlateau() {
@@ -263,47 +342,47 @@ public class Echiquier {
     }
 
     protected Coup deplacerAux(Coordonnee c, Coordonnee cDest) {
-	Coup retour = null;
+	Coup coup = null;
 	Piece temp = this.getPiece(c);
 	if (!this.getCase(cDest).memeCouleur(temp.isBlanc())) {
 	    if (temp.getClass() == Pion.class || temp.getClass() == Roi.class) {
 		if (temp.getClass() == Pion.class) {
-		    retour = this.deplacementPion(c, cDest);
+		    coup = this.deplacementPion(c, cDest);
 		} else {
-		    retour = this.deplacementRoi(c, cDest);
+		    coup = this.deplacementRoi(c, cDest);
 		}
 	    } else {
-		retour = new Coup(c, cDest, temp, this.getPiece(cDest));
+		coup = new Coup(c, cDest, temp, this.getPiece(cDest));
 		this.getPiece(c).setaBouge(true);
 		this.setCase(cDest, temp);
 		this.setCase(c, null);
 	    }
 	}
-	return retour;
+	return coup;
     }
 
     protected Coup protege(boolean couleur, Coordonnee c, Coordonnee cDest) {
-	Coup retour = this.deplacerAux(c, cDest);
+	Coup coup = this.deplacerAux(c, cDest);
 	boolean menaceNoir = false, menaceBlanc = false;
-	if (retour != null) {
-	    menaceBlanc = this.getCase(roiBlanc).estMenaceePar(!couleur, plateau);
-	    menaceNoir = this.getCase(roiNoir).estMenaceePar(!couleur, plateau);
-	    this.annulerAux(retour);
+	if (coup != null) {
+	    menaceBlanc = this.getCase(roiBlanc).estMenaceePar(false, plateau);
+	    menaceNoir = this.getCase(roiNoir).estMenaceePar(true, plateau);
+	    this.annulerAux(coup);
 	    if (couleur) {
 		if (menaceBlanc) {
 		    return null;
 		} else {
-		    retour.setEchec(menaceNoir);
+		    coup.setEchec(menaceNoir);
 		}
 	    } else {
 		if (menaceNoir) {
 		    return null;
 		} else {
-		    retour.setEchec(menaceBlanc);
+		    coup.setEchec(menaceBlanc);
 		}
 	    }
 	}
-	return retour;
+	return coup;
     }
 
     private void updateCoupsPossibles() {
@@ -326,6 +405,7 @@ public class Echiquier {
 		}
 	    }
 	}
+
     }
 
     protected int getCptTour() {
@@ -435,6 +515,10 @@ public class Echiquier {
 	this.tour = !this.tour;
 	this.cptTour++;
 	this.updateCoupsPossibles();
+	return this.gameState();
+    }
+    
+    public int gameState() {
 	if (this.coupsPossibles.isEmpty()) {
 	    if (tour) {
 		if (this.getCase(this.roiBlanc).estMenaceePar(false, plateau)) {
@@ -470,7 +554,7 @@ public class Echiquier {
 	}
     }
 
-    public double scoreDomination(boolean couleur) {
+    private int scoreDomination(boolean couleur) {
 	int i, j, sommeMenaceBlanche = 0, sommeMenaceNoire = 0;
 	Case temp;
 	for (i = 0; i < taille; i++) {
@@ -478,9 +562,9 @@ public class Echiquier {
 		temp = this.getCase(i, j);
 		if (temp.getPiece() != null) {
 		    if (temp.getPiece().isBlanc()) {
-			sommeMenaceBlanche = temp.getAttaque().size() + sommeMenaceBlanche;
+			sommeMenaceBlanche += temp.getAttaque().size();
 		    } else {
-			sommeMenaceNoire = temp.getAttaque().size() + sommeMenaceNoire;
+			sommeMenaceNoire += temp.getAttaque().size();
 		    }
 		}
 	    }
@@ -494,15 +578,15 @@ public class Echiquier {
 
     public int score(boolean couleur) {
 	int i, j, sommePieceBlanche = 0, sommePieceNoire = 0;
-	Piece temp;
+	Case c;
 	for (i = 0; i < taille; i++) {
 	    for (j = 0; j < taille; j++) {
-		temp = this.getCase(i, j).getPiece();
-		if (temp != null) {
-		    if (temp.isBlanc()) {
-			sommePieceBlanche = temp.valeur() + sommePieceBlanche;
+		c = this.getCase(i, j);
+		if (c.getPiece() != null) {
+		    if (c.getPiece().isBlanc()) {
+			sommePieceBlanche += c.getPiece().valeur()*10 + c.getAttaque().size();
 		    } else {
-			sommePieceNoire = temp.valeur() + sommePieceNoire;
+			sommePieceNoire += c.getPiece().valeur()*10 + c.getAttaque().size();
 		    }
 		}
 	    }
@@ -575,6 +659,60 @@ public class Echiquier {
 	    }
 	    fen.append("/");
 	}
+
+	// whose turn is it
+	if (this.isTour()) {
+	    fen.append(" w ");
+	} else {
+	    fen.append(" b ");
+	}
+
+	// Is rock possible
+	if (!this.getPiece(roiBlanc).isaBouge()) {
+	    Piece tour = this.getPiece(new Coordonnee("h1"));
+	    if (tour != null && tour instanceof Tour && !tour.isaBouge()) {
+		fen.append("K");
+	    } else {
+		fen.append("|");
+	    }
+	    tour = this.getPiece(new Coordonnee("a1"));
+	    if (tour != null && tour instanceof Tour && !tour.isaBouge()) {
+		fen.append("Q");
+	    } else {
+		fen.append("|");
+	    }
+	}
+	fen.append(" ");
+
+	if (!this.getPiece(roiNoir).isaBouge()) {
+	    Piece tour = this.getPiece(new Coordonnee("h8"));
+	    if (tour != null && tour instanceof Tour && !tour.isaBouge()) {
+		fen.append("k");
+	    } else {
+		fen.append("|");
+	    }
+	    tour = this.getPiece(new Coordonnee("a8"));
+	    if (tour != null && tour instanceof Tour && !tour.isaBouge()) {
+		fen.append("q");
+	    } else {
+		fen.append("|");
+	    }
+	}
+	fen.append(" ");
+
+	// Is there an En passant
+	boolean enPassant = false;
+	for (Coup c : this.coupsPossibles) {
+	    if (c instanceof PriseEnPassant) {
+		fen.append(c.getArrivee().toString());
+		enPassant = true;
+	    }
+	}
+
+	if (!enPassant) {
+	    fen.append("-");
+	}
+
 	return fen.toString();
     }
 

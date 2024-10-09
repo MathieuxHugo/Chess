@@ -73,7 +73,52 @@ public class Coup implements Cloneable {
 
     @Override
     public String toString() {
-	return this.pDepart.toString() + this.depart + (this.isPrise() ? "x" : "") + this.arrivee;
+	return this.pDepart.toString() + this.depart + (this.isPrise() ? "x" : "") + this.arrivee
+		+ (this.echec ? "+" : "");
+    }
+
+    public String updateFEN(String fen) {
+	String []fentab = fen.split(" ");
+	
+	String []board = fentab[0].split("/");
+	
+	//this
+		
+	//TODO Finish 
+	return fen;
+    }
+    
+    private int getPositionBonus() {
+
+	// Central squares (e4, d4, e5, d5)
+	if ((arrivee.getX() == 3 || arrivee.getX() == 4) && (arrivee.getY() == 3 || arrivee.getY() == 4)) {
+	    return 3;
+	}
+	// Near-center squares
+	if ((arrivee.getX() >= 2 && arrivee.getX() <= 5) && (arrivee.getY() >= 2 && arrivee.getY() <= 5)) {
+	    return 2;
+	}
+	// Edge squares
+	return 1;
+    }
+
+    public int importance() {
+	int importance = 0;
+
+	// Capture bonus
+	if (prise != null) {
+	    importance += prise.valeur();
+	}
+
+	// Check bonus
+	if (echec) {
+	    importance += 5;
+	}
+
+	// Position bonus
+	importance += getPositionBonus();
+
+	return importance;
     }
 
 }
